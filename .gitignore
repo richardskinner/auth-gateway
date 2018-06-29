@@ -1,0 +1,8 @@
+.env
+.idea/
+coverage/
+vendor/
+index.php
+authenticated.php
+loggedout.php
+logout.php

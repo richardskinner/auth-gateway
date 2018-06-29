@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true">
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>./src/Test/</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <server name='HTTP_HOST' value='dev.historyhit.tv' />
+        <server name="SERVER_NAME" value="dev.historyhit.tv"/>
+        <server name="SERVER_PORT" value="80"/>
+        <server name="REMOTE_ADDR" value="127.0.0.1"/>
+    </php>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src/AuthGateway</directory>
+        </whitelist>
+    </filter>
+</phpunit>

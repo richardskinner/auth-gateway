@@ -1,0 +1,21 @@
+{
+  "name": "simplestream/authgateway",
+  "license": "MIT",
+  "autoload": {
+    "psr-0" : {
+      "AuthGateway" : "src"
+    },
+    "psr-4": {
+      "AuthGateway\\Auth\\": "src/AuthGateway/Auth/"
+    }
+  },
+  "require": {
+    "auth0/auth0-php": "~5.0",
+    "vlucas/phpdotenv": "^2.4",
+    "ircmaxell/password-compat": "^1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.2",
+    "fzaninotto/faker": "^1.7"
+  }
+}
