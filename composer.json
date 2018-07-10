@@ -1,5 +1,5 @@
 {
-  "name": "simplestream/authgateway",
+  "name": "simplestream/auth-gateway",
   "license": "MIT",
   "autoload": {
     "psr-0" : {
