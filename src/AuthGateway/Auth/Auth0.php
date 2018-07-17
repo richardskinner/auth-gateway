@@ -245,15 +245,55 @@ class Auth0 implements AuthStrategy
     }
 
     /**
+     * @param $arr
+     * @return array
+     */
+    function removeEmptyElementFromMultidimensionalArray($arr) {
+
+        $return = array();
+
+        foreach($arr as $k => $v) {
+
+            if(is_array($v)) {
+                $return[$k] = $this->removeEmptyElementFromMultidimensionalArray($v); //recursion
+                continue;
+            }
+
+            if(empty($v)) {
+                unset($arr[$v]);
+            } else {
+                $return[$k] = $v;
+            };
+        }
+
+        return $return;
+    }
+
+    /**
      * updateUser
      *
      * @param string $userId
      * @param array $data
+     *
      * @return mixed|string
+     *
      * @throws \Exception
      */
     public function updateUser($userId, array $data)
     {
+        $data = [
+            'connection' => 'Username-Password-Authentication',
+            'email' => isset($data['email']) ? $data['email'] : null,
+            'password' => isset($data['password']) ? $data['password'] : null,
+            'user_metadata' => [
+                'first_name' => isset($data['first_name']) ? $data['first_name'] : null,
+                'last_name' => isset($data['last_name']) ? $data['last_name'] : null,
+                'company_id' => isset($data['company_id']) ? (integer) $data['company_id'] : null,
+            ]
+        ];
+
+        $data = $this->removeEmptyElementFromMultidimensionalArray($data);
+
         return $this->managementClient->users->update($userId, $data);
     }
 
