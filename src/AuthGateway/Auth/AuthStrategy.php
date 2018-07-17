@@ -39,6 +39,8 @@ interface AuthStrategy
     /**
      * Method getUser
      *
+     * Gets the user from session
+     *
      * @return mixed
      */
     public function getUser();
@@ -70,4 +72,13 @@ interface AuthStrategy
      * @return mixed
      */
     public function updateUser($userId, array $data);
+
+    /**
+     * Method deleteUser
+     *
+     * @param $userId
+     *
+     * @return mixed
+     */
+    public function deleteUser($userId);
 }

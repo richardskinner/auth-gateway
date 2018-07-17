@@ -73,7 +73,14 @@ class Auth0Test extends TestCase
     public function providerGetUser()
     {
         return [
-            ['auth0|47547f3eef3cbf6f1327db318688db97']
+            ['auth0|5a8308d99bf9bc6ee2544892']
+        ];
+    }
+
+    public function providerDeleteUser()
+    {
+        return [
+            ['auth0|5a8308d99bf9bc6ee2544892']
         ];
     }
 
@@ -124,5 +131,15 @@ class Auth0Test extends TestCase
     {
         $userId = $this->auth0->createUser($email, $password, $metadata);
         $this->assertRegExp('^[auth0].*$^', $userId);
+    }
+
+    /**
+     * @dataProvider providerDeleteUser
+     *
+     * @param $userId
+     */
+    public function testDeleteUser($userId)
+    {
+        $this->assertTrue(true);
     }
 }

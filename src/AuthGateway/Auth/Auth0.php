@@ -188,7 +188,7 @@ class Auth0 implements AuthStrategy
             $accountCode = null;
 
             if (!empty($listUsers)) {
-
+                // @TODO: Needs some sort of transformer
                 $this->managementClient->users->create(
                     array(
                         'connection' => 'Username-Password-Authentication',
@@ -203,7 +203,7 @@ class Auth0 implements AuthStrategy
                 return false;
 
             } else {
-
+                // @TODO: Needs some sort of transformer
                 $user = $this->managementClient->users->create(
                     array(
                         'connection' => 'Username-Password-Authentication',
@@ -245,31 +245,6 @@ class Auth0 implements AuthStrategy
     }
 
     /**
-     * @param $arr
-     * @return array
-     */
-    function removeEmptyElementFromMultidimensionalArray($arr) {
-
-        $return = array();
-
-        foreach($arr as $k => $v) {
-
-            if(is_array($v)) {
-                $return[$k] = $this->removeEmptyElementFromMultidimensionalArray($v); //recursion
-                continue;
-            }
-
-            if(empty($v)) {
-                unset($arr[$v]);
-            } else {
-                $return[$k] = $v;
-            };
-        }
-
-        return $return;
-    }
-
-    /**
      * updateUser
      *
      * @param string $userId
@@ -281,6 +256,7 @@ class Auth0 implements AuthStrategy
      */
     public function updateUser($userId, array $data)
     {
+        // @TODO: Needs some sort of transformer
         $data = [
             'connection' => 'Username-Password-Authentication',
             'email' => isset($data['email']) ? $data['email'] : null,
@@ -298,6 +274,22 @@ class Auth0 implements AuthStrategy
         $data = $this->removeEmptyElementFromMultidimensionalArray($data);
 
         return $this->managementClient->users->update($userId, $data);
+    }
+
+    /**
+     * deleteUser
+     *
+     * @deprecated needs testing and there are scope issues
+     *
+     * @param $userId
+     *
+     * @return mixed|string
+     *
+     * @throws \Exception
+     */
+    public function deleteUser($userId)
+    {
+        return $this->managementClient->users->delete($userId);
     }
 
     /**
@@ -463,5 +455,30 @@ class Auth0 implements AuthStrategy
                 throw new \Exception('Internal Error');
             }
         }
+    }
+
+    /**
+     * @param $arr
+     * @return array
+     */
+    function removeEmptyElementFromMultidimensionalArray($arr) {
+
+        $return = array();
+
+        foreach($arr as $k => $v) {
+
+            if(is_array($v)) {
+                $return[$k] = $this->removeEmptyElementFromMultidimensionalArray($v); //recursion
+                continue;
+            }
+
+            if(empty($v)) {
+                unset($arr[$v]);
+            } else {
+                $return[$k] = $v;
+            };
+        }
+
+        return $return;
     }
 }
