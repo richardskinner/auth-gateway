@@ -245,31 +245,6 @@ class Auth0 implements AuthStrategy
     }
 
     /**
-     * @param $arr
-     * @return array
-     */
-    function removeEmptyElementFromMultidimensionalArray($arr) {
-
-        $return = array();
-
-        foreach($arr as $k => $v) {
-
-            if(is_array($v)) {
-                $return[$k] = $this->removeEmptyElementFromMultidimensionalArray($v); //recursion
-                continue;
-            }
-
-            if(empty($v)) {
-                unset($arr[$v]);
-            } else {
-                $return[$k] = $v;
-            };
-        }
-
-        return $return;
-    }
-
-    /**
      * updateUser
      *
      * @param string $userId
@@ -299,6 +274,22 @@ class Auth0 implements AuthStrategy
         $data = $this->removeEmptyElementFromMultidimensionalArray($data);
 
         return $this->managementClient->users->update($userId, $data);
+    }
+
+    /**
+     * deleteUser
+     *
+     * @deprecated needs testing and there are scope issues
+     *
+     * @param $userId
+     *
+     * @return mixed|string
+     *
+     * @throws \Exception
+     */
+    public function deleteUser($userId)
+    {
+        return $this->managementClient->users->delete($userId);
     }
 
     /**
@@ -464,5 +455,30 @@ class Auth0 implements AuthStrategy
                 throw new \Exception('Internal Error');
             }
         }
+    }
+
+    /**
+     * @param $arr
+     * @return array
+     */
+    function removeEmptyElementFromMultidimensionalArray($arr) {
+
+        $return = array();
+
+        foreach($arr as $k => $v) {
+
+            if(is_array($v)) {
+                $return[$k] = $this->removeEmptyElementFromMultidimensionalArray($v); //recursion
+                continue;
+            }
+
+            if(empty($v)) {
+                unset($arr[$v]);
+            } else {
+                $return[$k] = $v;
+            };
+        }
+
+        return $return;
     }
 }
