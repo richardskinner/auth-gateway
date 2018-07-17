@@ -5,9 +5,7 @@ namespace AuthGateway\Auth;
 use Auth0\SDK\Auth0 as Auth0SDK;
 use Auth0\SDK\API\Management;
 use Auth0\SDK\API\Authentication;
-use Auth0\SDK\Exception\ApiException;
-use Auth0\SDK\Exception\CoreException;
-use Auth0\SDK\Exception\InvalidTokenException;
+use AuthGateway\Auth\Transformers\Auth0Transformer;
 use GuzzleHttp\Exception\ClientException;
 
 class Auth0 implements AuthStrategy
@@ -37,30 +35,40 @@ class Auth0 implements AuthStrategy
      */
     private $auth0Enabled = false;
 
+    /**
+     * @var Auth0SDK
+     */
     private $authenticationClient;
+
+    /**
+     * @var Management
+     */
+    private $managementClient;
 
     /**
      * Auth0 constructor.
      *
-     * @param Auth0SDK $auth0
      * @param array $settings
+     *
+     * @throws \Exception
      */
-    public function __construct(Auth0SDK $auth0, array $settings = [])
+    public function __construct(array $settings = [])
     {
-        $this->authenticationClient = $auth0;
-        $this->auth0Enabled = true;
-
         if (!empty($settings)) {
             $this->domain = $settings['domain'];
-            $this->clientId = $settings['clientId'];
-            $this->clientSecret = $settings['clientSecret'];
+            $this->clientId = $settings['client_id'];
+            $this->clientSecret = $settings['client_secret'];
         }
+
+        $this->authenticationClient = $this->getAuth0SDK();
+        $this->managementClient = $this->getManagementClient();
+        $this->auth0Enabled = true;
     }
 
     /**
      * authenticate
      *
-     * @return string
+     * @return array|bool
      *
      * @throws \Auth0\SDK\Exception\ApiException
      * @throws \Auth0\SDK\Exception\CoreException
@@ -68,8 +76,7 @@ class Auth0 implements AuthStrategy
      */
     public function authenticate()
     {
-        $auth0 = $this->getAuthenticationClient();
-        $userInfo = $auth0->getUser();
+        $userInfo = $this->authenticationClient->getUser();
 
         if (null === $userInfo) {
             return false;
@@ -81,23 +88,12 @@ class Auth0 implements AuthStrategy
             $socialLogin = true;
         }
 
-        $appMetadata = $this->getAppMetadata($userInfo['sub']);
 
-        // @TODO: Probably should consider not formatting the response before sending back, each Auth0 client will have a different returned format
-        $identity = (object)[
-            'account_code' => md5($userInfo['sub']),
-            'account_created' => null,
-            'account_type' => $appMetadata['account_type'],
-            'account_state' => 'active',
-            'account_email' => $userInfo['email'],
-            'account_first_name' => '-',
-            'account_last_name' => '-',
-            'subscription_state' => $appMetadata['account_type'],
-            'social_login' => $socialLogin,
-            'recurly_account_code' => isset($appMetadata['recurly']['account_code']) ? $appMetadata['recurly']['account_code'] : null,
-        ];
+        $userInfo['user_id'] = $userInfo['sub'];
+        $userMetadata = $this->getUserMetadata($userInfo['sub']);
 
-        return $identity;
+
+        return Auth0Transformer::transform(array_merge($userInfo, $userMetadata));
     }
 
     /**
@@ -105,8 +101,7 @@ class Auth0 implements AuthStrategy
      */
     public function login()
     {
-        $auth0 = $this->getAuthenticationClient();
-        $auth0->login();
+        $this->authenticationClient->login();
     }
 
     /**
@@ -117,113 +112,60 @@ class Auth0 implements AuthStrategy
     public function logout()
     {
         if ($this->auth0Enabled) {
-            $auth0 = $this->getAuthenticationClient();
-            $auth0->logout();
+            $this->authenticationClient->logout();
         }
-    }
-
-    /**
-     * getAuthenticationClient
-     *
-     * @deprecated Remove when DI completed
-     *
-     * @return Auth0SDK
-     */
-    protected function getAuthenticationClient()
-    {
-
-
-        return new Auth0SDK([
-            'domain' => $this->domain,
-            'client_id' => $this->clientId,
-            'client_secret' => $this->clientSecret,
-            'redirect_uri' => $prot . '://' . $_SERVER['HTTP_HOST'] . '/login',
-            'audience' => 'https://' . $this->domain . '/api/v2/',
-            'scope' => 'openid profile',
-            'persist_id_token' => false,
-            'persist_access_token' => true,
-            'persist_refresh_token' => false,
-        ]);
-    }
-
-    /**
-     * getManagementClient
-     *
-     * @return Management
-     * @throws \Exception
-     */
-    protected function getManagementClient()
-    {
-        if (!$this->token) {
-
-            $auth0Auth = new Authentication($this->domain, $this->clientId, $this->clientSecret);
-
-            try {
-
-                $response = $auth0Auth->client_credentials(array('audience' => 'https://' . $this->domain . '/api/v2/'));
-                $this->token = $response['access_token'];
-
-            } catch (ApiException $e) {
-                throw new \Exception('Internal Error');
-            }
-        }
-
-        return new Management($this->token, $this->domain);
-    }
-
-    /**
-     * getAppMetadata
-     *
-     * @param string $userId
-     * @return array
-     * @throws \Exception
-     */
-    protected function getAppMetadata($userId)
-    {
-        try {
-            $auth0Mgm = $this->getManagementClient();
-            $user = $auth0Mgm->users->get($userId);
-        } catch (\Exception $exception) {
-            throw new \Exception('Internal Error');
-        }
-
-        if (isset($user['app_metadata'])) {
-            return $user['app_metadata'];
-        }
-
-        return array();
-
-    }
-
-    /**
-     * @param string $userId
-     * @return string
-     * @throws \Exception
-     */
-    protected function setRecurlyAccountCode($userId)
-    {
-        try {
-            $auth0Mgm = $this->getManagementClient();
-            $accountCode = $userId;
-            $auth0Mgm->users->update($userId, array('app_metadata' => array('recurly' => array('account_code' => $accountCode), 'termOfUseTimestamp' => date('c'))));
-        } catch (\Exception $exception) {
-            throw new \Exception('Internal Error');
-        }
-
-        return $accountCode;
     }
 
     /**
      * getUser
      *
-     * @return mixed|string
-     * @throws \Auth0\SDK\Exception\CoreException
+     * Gets logged in user
+     *
+     * @return array|mixed|null
      * @throws \Auth0\SDK\Exception\ApiException
+     * @throws \Auth0\SDK\Exception\CoreException
      */
     public function getUser()
     {
-        $auth0 = $this->getAuthenticationClient();
-        return $auth0->getUser();
+        return $this->authenticationClient->getUser();
+    }
+
+    /**
+     * getUsers
+     *
+     * @param array $filters
+     * @param int   $page
+     * @param int   $perPage
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    public function getUsers($filters = [], $page = 0, $perPage = 10)
+    {
+        $accounts = $this->managementClient->users->getAll(['include_totals' => true], null, true, $page, $perPage);
+
+        $transformed = array_map(function ($item) {
+            return Auth0Transformer::transform($item);
+        }, $accounts['users']);
+
+        $accounts['users'] = $transformed;
+
+        return $accounts;
+    }
+
+    /**
+     * getUserById
+     *
+     * @param string $userId
+     *
+     * @throws \Exception
+     *
+     * @return array|mixed|null
+     */
+    public function getUserById($userId)
+    {
+        return Auth0Transformer::transform($this->managementClient->users->get($userId));
     }
 
     /**
@@ -231,29 +173,28 @@ class Auth0 implements AuthStrategy
      *
      * @param string $email
      * @param string $password
+     * @param array  $metadata
      *
      * @return string AccountCode|bool
      *
      * @throws \Exception
      */
-    public function createUser($email, $password)
+    public function createUser($email, $password, $metadata = [])
     {
         try {
-
-            $auth0Mgm = $this->getManagementClient();
-            $listUsers = $auth0Mgm->usersByEmail->get(array('email' => $email));
+            $listUsers = $this->managementClient->usersByEmail->get(array('email' => $email));
 
             // multiple users
             $accountCode = null;
 
             if (!empty($listUsers)) {
 
-                $auth0Mgm->users->create(
+                $this->managementClient->users->create(
                     array(
                         'connection' => 'Username-Password-Authentication',
                         'email' => $email,
                         'password' => $password,
-                        'app_metadata' => array(
+                        'user_metadata' => array(
                             'multi_account' => true
                         )
                     )
@@ -263,11 +204,21 @@ class Auth0 implements AuthStrategy
 
             } else {
 
-                $user = $auth0Mgm->users->create(
+                $user = $this->managementClient->users->create(
                     array(
                         'connection' => 'Username-Password-Authentication',
                         'email' => $email,
-                        'password' => $password
+                        'password' => $password,
+                        'name' => (isset($metadata['first_name']) ? $metadata['first_name'] : null) . ' ' . (isset($metadata['last_name']) ? $metadata['last_name'] : null),
+                        'user_metadata' => [
+                            'first_name' => isset($metadata['first_name']) ? $metadata['first_name'] : null,
+                            'last_name' => isset($metadata['last_name']) ? $metadata['last_name'] : null,
+                            'account_type' => isset($metadata['account_type']) ? $metadata['account_type'] : null,
+                            'company_id' => isset($metadata['company_id']) ? $metadata['company_id'] : null,
+                            'recurly' => [
+                                'account_code' => null
+                            ]
+                        ]
                     )
                 );
 
@@ -295,47 +246,168 @@ class Auth0 implements AuthStrategy
     }
 
     /**
-     * changePassword
+     * updateUser
      *
-     * @param string $password
+     * @param string $userId
+     * @param array $data
+     * @return mixed|string
      * @throws \Exception
      */
-    public function changePassword($password)
+    public function updateUser($userId, array $data)
     {
+        return $this->managementClient->users->update($userId, $data);
+    }
 
-        $user = $this->getUser();
+    /**
+     * getProtocol
+     *
+     * @return string
+     */
+    public function getProtocol()
+    {
+        return isset($_SERVER['HTTPS']) ? 'https' : 'http';
+    }
+
+    /**
+     * @return Auth0SDK
+     */
+    public function getAuth0SDK()
+    {
+        return new Auth0SDK([
+            'domain' => $this->domain,
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'redirect_uri' => $this->getProtocol() . '://' . $_SERVER['HTTP_HOST'] . '/authenticated.php',
+            'audience' => 'https://' . getenv('AUTH0_DOMAIN') . '/api/v2/',
+            'scope' => 'openid profile',
+            'persist_id_token' => false,
+            'persist_access_token' => true,
+            'persist_refresh_token' => false,
+        ]);
+    }
+
+    /**
+     * getManagementClient
+     *
+     * @return Management
+     * @throws \Exception
+     */
+    protected function getManagementClient()
+    {
+        if (!$this->token) {
+            $auth0Auth = new Authentication($this->domain, $this->clientId, $this->clientSecret);
+            $response = $auth0Auth->client_credentials(array('audience' => 'https://' . $this->domain . '/api/v2/'));
+            $this->token = $response['access_token'];
+        }
+
+        return new Management($this->token, $this->domain);
+    }
+
+    /**
+     * getUserMetadata
+     *
+     * @param string $userId
+     * @return array
+     * @throws \Exception
+     */
+    protected function getUserMetadata($userId)
+    {
+        try {
+            $user = $this->managementClient->users->get($userId);
+        } catch (\Exception $exception) {
+            throw new \Exception('Internal Error');
+        }
+
+        if (isset($user['user_metadata'])) {
+            return $user['user_metadata'];
+        }
+
+        return array();
+    }
+
+    /**
+     * @param string $userId
+     * @return string
+     * @throws \Exception
+     */
+    protected function setRecurlyAccountCode($userId)
+    {
+        try {
+            $accountCode = $userId;
+            $this->managementClient->users->update(
+                $userId,
+                array(
+                    'user_metadata' => array(
+                        'recurly' => array(
+                            'account_code' => $accountCode
+                        ),
+                        'termOfUseTimestamp' => date('c')
+                    )
+                )
+            );
+        } catch (\Exception $exception) {
+            throw new \Exception('Internal Error');
+        }
+
+        return $accountCode;
+    }
+
+    /**
+     * changePassword
+     *
+     * @param string $userId
+     * @param string $password
+     *
+     * @throws \Exception
+     *
+     * @return array
+     */
+    public function changePassword($userId, $password)
+    {
+        $user = $this->getUserById($userId);
+
         if (!$user) {
             throw new \Exception('Invalid user');
         }
-        $userId = $user['sub'];
-        $auth0Mgm = $this->getManagementClient();
-        $auth0Mgm->users->update($userId, array('password' => $password, 'connection' => 'Username-Password-Authentication'));
+
+        return $this->managementClient->users->update($userId, array('password' => $password, 'connection' => 'Username-Password-Authentication'));
     }
 
     /**
      * changeEmail
      *
+     * @param string $userId
      * @param string $email
+     *
      * @throws \Exception
+     *
+     * @return array
      */
-    public function changeEmail($email)
+    public function changeEmail($userId, $email)
     {
-        $user = $this->getUser();
+        $user = $this->getUserById($userId);
 
         if (!$user) {
             throw new \Exception('Invalid user');
         }
 
-        $userId = $user['sub'];
-        $auth0Mgm = $this->getManagementClient();
-        $auth0Mgm->users->update($userId, array('email' => $email, 'client_id' => $this->clientId, 'connection' => 'Username-Password-Authentication'));
-        $auth0Mgm->jobs->sendVerificationEmail($userId);
+        $this->managementClient->users->update(
+            $userId,
+            array(
+                'email' => $email,
+                'client_id' => $this->clientId,
+                'connection' => 'Username-Password-Authentication'
+            )
+        );
+
+        return $this->managementClient->jobs->sendVerificationEmail($userId);
     }
 
     /**
      * sendEmailVerification
      *
      * @param string $token
+     *
      * @throws \Exception
      */
     public function sendEmailVerification($token)
@@ -344,8 +416,7 @@ class Auth0 implements AuthStrategy
 
         if (preg_match('#^auth0#', $userId)) {
             try {
-                $auth0Mgm = $this->getManagementClient();
-                $auth0Mgm->jobs->sendVerificationEmail($userId);
+                $this->managementClient->jobs->sendVerificationEmail($userId);
             } catch (\Exception $e) {
                 throw new \Exception('Internal Error');
             }

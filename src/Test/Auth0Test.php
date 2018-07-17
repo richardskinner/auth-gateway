@@ -7,105 +7,127 @@ use AuthGateway\Auth\Auth0;
 
 class Auth0Test extends TestCase
 {
-    public function __construct($name = null, array $data = [], $dataName = '')
+    private $auth0;
+
+    public function setUp()
     {
+        @session_start();
+        parent::setUp();
+
         $dotenv = new Dotenv(dirname(__DIR__, 2));
         $dotenv->load();
 
-        parent::__construct($name, $data, $dataName);
+        /** @TODO: Find out how to Mock Auth0 */
+        $this->auth0 = new Auth0([
+            'domain' => getenv('AUTH0_DOMAIN'),
+            'client_id' => getenv('AUTH0_CLIENT_ID'),
+            'client_secret' => getenv('AUTH0_CLIENT_SECRET'),
+        ]);
     }
 
-    public function providerUserData()
-    {
-        return [
-            [
-                'account_code' => null,
-                'account_created' => null,
-                'account_type' => null,
-                'account_state' => null,
-                'account_email' => null,
-                'account_first_name' => null,
-                'account_last_name' => null,
-                'subscription_state' => null,
-                'social_login' => null,
-                'recurly_account_code' => null,
-            ]
-        ];
-    }
-
-    public function providerCreateUserAuth0()
+    public function providerChangeEmail()
     {
         $faker = Factory::create();
 
         return [
-            [$faker->email, $faker->password, isset($_SERVER['HTTPS']) ? 'https' : 'http']
+            ['auth0|47547f3eef3cbf6f1327db318688db97', 'rgskinner@werdigital.co.uk']
+        ];
+    }
+
+    public function providerUpdateUserData()
+    {
+        $faker = Factory::create();
+
+        return [
+            [
+                'auth0|47547f3eef3cbf6f1327db318688db97',
+                [
+                    'connection' => 'Username-Password-Authentication',
+                    'user_metadata' => [
+                        'first_name' => $faker->firstName,
+                        'last_name' => $faker->lastName,
+                        'account_type' => 'regular',
+                        'company_id' => 122,
+                        'recurly' => [
+                            'account_code' => 'auth0|47547f3eef3cbf6f1327db318688db97'
+                        ]
+                    ]
+                ]
+            ]
         ];
     }
 
     public function providerCreateUser()
     {
+        $faker = Factory::create();
+
         return [
-            []
+            [
+                $faker->email,
+                $faker->password,
+                [
+                    'first_name' => $faker->firstName,
+                    'last_name' => $faker->lastName,
+                    'account_type' => 'regular',
+                    'company_id' => 122
+                ]
+            ]
         ];
     }
 
-    public function providerProtocol()
+    public function providerGetUser()
     {
         return [
-            []
+            ['auth0|47547f3eef3cbf6f1327db318688db97']
         ];
     }
-
-//    public function testFailedAuthenticationOfUser()
-//    {
-//        $dotenv = new Dotenv(dirname(__DIR__, 2));
-//        $dotenv->load();
-//
-//        $auth0 = \AuthGateway\Auth\AuthGateway::getInstance(\AuthGateway\Auth\AuthGateway::AUTH0, [
-//            'domain' => getenv('DOMAIN'),
-//            'clientId' => getenv('CLIENT_ID'),
-//            'clientSecret' => getenv('CLIENT_SECRET')
-//        ]);
-//
-//        $authenticate = $auth0->authenticate();
-//
-//        $this->assertFalse($authenticate);
-//    }
 
     /**
-     * @dataProvider providerCreateUserAuth0
+     * @dataProvider providerGetUser
+     *
+     * @param $userId
+     *
+     * @throws Exception
      */
-    public function testCreateUserAccount($username, $password, $prot)
+    public function testGetUserById($userId)
     {
-        try {
-            $auth0SDK = $this->getMockClass('\Auth0\SDK\Auth0', [], [
-                'domain' => getenv('AUTH0_DOMAIN'),
-                'client_id' => getenv('AUTH0_CLIENT_ID'),
-                'client_secret' => getenv('AUTH0_CLIENT_SECRET'),
-                'redirect_uri' => $prot . '://' . $_SERVER['HTTP_HOST'] . '/login',
-                'audience' => 'https://' . getenv('AUTH0_DOMAIN') . '/api/v2/',
-                'scope' => 'openid profile',
-                'persist_id_token' => false,
-                'persist_access_token' => true,
-                'persist_refresh_token' => false,
-            ]);
+        $this->assertArrayHasKey('id', $this->auth0->getUserById($userId));
+    }
 
-            var_dump($auth0SDK);
+    /**
+     * @dataProvider providerUpdateUserData
+     *
+     * @param $userId
+     */
+    public function testUpdateUser($userId, $data)
+    {
+        $response = $this->auth0->updateUser($userId, $data);
 
-//            $auth0 = new Auth0($auth0SDK, [
-//                'domain' => getenv('HH_DOMAIN'),
-//                'clientId' => getenv('HH_CLIENT_ID'),
-//                'clientSecret' => getenv('HH_CLIENT_SECRET')
-//            ]);
-//
-//            $userID = $auth0->createUser($username, $password);
-//
-//            $this->assertRegExp('^auth0\|[a-zA-Z0-9]*^', $userID);
+        $this->assertArraySubset(['user_metadata' => ['company_id' => 122]], $response);
+    }
 
-        } catch (Exception $exception) {
-            // ...
-        } catch (ReflectionException $exception) {
-            // ...
-        }
+    /**
+     * @dataProvider providerChangeEmail
+     * @param $userId
+     * @param $email
+     */
+    public function testChangeEmail($userId, $email)
+    {
+        $response = $this->auth0->changeEmail($userId, $email);
+
+        $this->assertArraySubset(['status' => 'pending'], $response);
+    }
+
+    /**
+     * @dataProvider providerCreateUser
+     *
+     * @param $email
+     * @param $password
+     * @param $metadata
+     */
+    public function testCreateUser($email, $password, $metadata)
+    {
+        $userId = $this->auth0->createUser($email, $password, $metadata);
+        $this->assertRegExp('^[auth0].*$^', $userId);
     }
 }

@@ -15,6 +15,13 @@ class Auth implements AuthStrategy
         }
     }
 
+    public function setModel(Zend_Db_Table_Abstract $model)
+    {
+        $this->model = $model;
+
+        return $this;
+    }
+
     public function authenticate()
     {
         $account = $this->model->getByEmail($_POST['username']);
@@ -59,10 +66,18 @@ class Auth implements AuthStrategy
         return false;
     }
 
-    public function setModel(Zend_Db_Table_Abstract $model)
+    public function getUsers()
     {
-        $this->model = $model;
+        // TODO: Implement createUser() method.
+    }
 
-        return $this;
+    public function createUser()
+    {
+        // TODO: Implement createUser() method.
+    }
+
+    public function getUser()
+    {
+        // TODO: Implement getUser() method.
     }
 }
