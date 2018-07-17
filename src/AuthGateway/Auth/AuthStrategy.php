@@ -37,9 +37,7 @@ interface AuthStrategy
     public function getUsers($filters = [], $page = 1, $perPage = 10);
 
     /**
-     * Method getUser]
-     *
-     * @param string $userId
+     * Method getUser
      *
      * @return mixed
      */

@@ -44,4 +44,14 @@ class AuthLaravel implements AuthStrategy
     {
         // TODO: Implement getUser() method.
     }
+
+    public function updateUser($userId, array $data)
+    {
+        // TODO: Implement updateUser() method.
+    }
+
+    public function getUserById($userId)
+    {
+        // TODO: Implement getUserById() method.
+    }
 }
