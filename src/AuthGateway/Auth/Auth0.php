@@ -289,6 +289,9 @@ class Auth0 implements AuthStrategy
                 'first_name' => isset($data['first_name']) ? $data['first_name'] : null,
                 'last_name' => isset($data['last_name']) ? $data['last_name'] : null,
                 'company_id' => isset($data['company_id']) ? (integer) $data['company_id'] : null,
+                'recurly' => [
+                    'account_code' => isset($data['account_code']) ? (integer) $data['account_code'] : null,
+                ]
             ]
         ];
 

@@ -43,15 +43,10 @@ class Auth0Test extends TestCase
                 'auth0|47547f3eef3cbf6f1327db318688db97',
                 [
                     'connection' => 'Username-Password-Authentication',
-                    'user_metadata' => [
-                        'first_name' => $faker->firstName,
-                        'last_name' => $faker->lastName,
-                        'account_type' => 'regular',
-                        'company_id' => 122,
-                        'recurly' => [
-                            'account_code' => 'auth0|47547f3eef3cbf6f1327db318688db97'
-                        ]
-                    ]
+                    'first_name' => $faker->firstName,
+                    'last_name' => $faker->lastName,
+                    'company_id' => 122,
+                    'account_code' => 'auth0|47547f3eef3cbf6f1327db318688db97'
                 ]
             ]
         ];
