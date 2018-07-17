@@ -213,7 +213,6 @@ class Auth0 implements AuthStrategy
                         'user_metadata' => [
                             'first_name' => isset($metadata['first_name']) ? $metadata['first_name'] : null,
                             'last_name' => isset($metadata['last_name']) ? $metadata['last_name'] : null,
-                            'account_type' => isset($metadata['account_type']) ? $metadata['account_type'] : null,
                             'company_id' => isset($metadata['company_id']) ? $metadata['company_id'] : null,
                             'recurly' => [
                                 'account_code' => null
