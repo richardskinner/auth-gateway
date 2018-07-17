@@ -8,7 +8,6 @@ use App\Repositories\AccountRepository;
 class AuthLaravel implements AuthStrategy
 {
     private $repository;
-    private $filters;
 
     public function __construct()
     {
@@ -32,7 +31,15 @@ class AuthLaravel implements AuthStrategy
 
     public function getUsers($filters = [], $page = 0, $perPage = 15)
     {
-        return $this->repository->findByFilters($filters, $perPage);
+        $accounts = $this->repository->findByFilters($filters, $perPage)->toArray();
+
+        $transformed = array_map(function ($item) {
+            return SimplestreamTransformer::transform($item);
+        }, $accounts['data']);
+
+        $accounts['data'] = $transformed;
+
+        return $accounts;
     }
 
     public function createUser($email, $password)
@@ -53,5 +60,10 @@ class AuthLaravel implements AuthStrategy
     public function getUserById($userId)
     {
         // TODO: Implement getUserById() method.
+    }
+
+    public function deleteUser($userId)
+    {
+        // TODO: Implement deleteUser() method.
     }
 }

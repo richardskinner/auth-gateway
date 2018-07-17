@@ -149,7 +149,8 @@ class Auth0 implements AuthStrategy
             return Auth0Transformer::transform($item);
         }, $accounts['users']);
 
-        $accounts['users'] = $transformed;
+        $accounts['data'] = $transformed;
+        unset($accounts['users']);
 
         return $accounts;
     }
@@ -211,8 +212,8 @@ class Auth0 implements AuthStrategy
                         'password' => $password,
                         'name' => (isset($metadata['first_name']) ? $metadata['first_name'] : null) . ' ' . (isset($metadata['last_name']) ? $metadata['last_name'] : null),
                         'user_metadata' => [
-                            'first_name' => isset($metadata['first_name']) ? $metadata['first_name'] : null,
-                            'last_name' => isset($metadata['last_name']) ? $metadata['last_name'] : null,
+                            'first_name' => isset($data['account_first_name']) ? $data['account_first_name'] : null,
+                            'last_name' => isset($data['account_last_name']) ? $data['account_last_name'] : null,
                             'company_id' => isset($metadata['company_id']) ? $metadata['company_id'] : null,
                             'recurly' => [
                                 'account_code' => null
@@ -262,8 +263,8 @@ class Auth0 implements AuthStrategy
             'email' => isset($data['email']) ? $data['email'] : null,
             'password' => isset($data['password']) ? $data['password'] : null,
             'user_metadata' => [
-                'first_name' => isset($data['first_name']) ? $data['first_name'] : null,
-                'last_name' => isset($data['last_name']) ? $data['last_name'] : null,
+                'first_name' => isset($data['account_first_name']) ? $data['account_first_name'] : null,
+                'last_name' => isset($data['account_last_name']) ? $data['account_last_name'] : null,
                 'company_id' => isset($data['company_id']) ? (integer) $data['company_id'] : null,
                 'recurly' => [
                     'account_code' => isset($data['account_code']) ? (integer) $data['account_code'] : null,
