@@ -6,6 +6,7 @@ use AuthGateway\Auth\Transformers\SimplestreamTransformer;
 use Illuminate\Database\Capsule\Manager;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Container\Container;
+use Illuminate\Support\Facades\Auth;
 use PasswordCompat;
 
 class AuthLaravel implements AuthStrategy
@@ -97,6 +98,7 @@ class AuthLaravel implements AuthStrategy
     public function createUser($email, $password, array $data)
     {
         $data = array_merge($data, [
+            'account_password' => $password,
             'account_created' => date('Y-m-d H:i:s'),
         ]);
 
