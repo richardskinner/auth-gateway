@@ -1,8 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
-use AuthGateway\Auth\Auth0;
+use AuthGateway\Auth\AuthLaravel;
 
 class AuthLaravelTest extends TestCase
 {
@@ -13,7 +14,10 @@ class AuthLaravelTest extends TestCase
         @session_start();
         Dotenv::load(dirname(__DIR__, 2));
 
-        $this->authLaravel = new \AuthGateway\Auth\AuthLaravel([
+        Auth::shouldReceive('user')->andReturn($user = \Mockery::mock('StdClass'))->once();
+        $user->company_id = 122;
+
+        $this->authLaravel = new AuthLaravel([
             'driver' => getenv('DB_CONNECTION'),
             'host' => getenv('DB_HOST'),
             'database' => getenv('DB_DATABASE'),
@@ -111,7 +115,7 @@ class AuthLaravelTest extends TestCase
     public function testCreateUser($email, $password, $data)
     {
         $created = $this->authLaravel->createUser($email, $password, $data);
-        var_dump($created);
+        $this->assertTrue($created);
 
     }
 }

@@ -66,18 +66,33 @@ class Auth implements AuthStrategy
         return false;
     }
 
-    public function getUsers()
+    public function getUsers($filters = [], $page = 1, $perPage = 10)
+    {
+        // TODO: Implement getUsers() method.
+    }
+
+    public function createUser($email, $password, array $data)
     {
         // TODO: Implement createUser() method.
     }
 
-    public function createUser()
+    public function getUserById($userId)
     {
-        // TODO: Implement createUser() method.
+        // TODO: Implement getUserById() method.
     }
 
     public function getUser()
     {
         // TODO: Implement getUser() method.
+    }
+
+    public function updateUser($userId, array $data)
+    {
+        // TODO: Implement updateUser() method.
+    }
+
+    public function deleteUser($userId)
+    {
+        // TODO: Implement deleteUser() method.
     }
 }
