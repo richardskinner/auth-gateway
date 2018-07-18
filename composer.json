@@ -10,12 +10,12 @@
     }
   },
   "require": {
-    "auth0/auth0-php": "~5.0",
-    "vlucas/phpdotenv": "~1.0",
-    "ircmaxell/password-compat": "^1.0",
-    "laravel/database": "^5.2"
+    "auth0/auth0-php": "~5.0"
   },
   "require-dev": {
+    "vlucas/phpdotenv": "~1.0",
+    "ircmaxell/password-compat": "^1.0",
+    "laravel/database": "^5.2",
     "fzaninotto/faker": "^1.7",
     "phpunit/phpunit": "6.5.9",
     "phpunit/phpunit-selenium": "^4.1"
