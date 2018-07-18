@@ -8,6 +8,7 @@ class Auth0Transformer implements TransformerInterface
     {
         return [
             'id' => $data['user_id'],
+            'company_id' => $data['company_id'],
             'email' => $data['email'],
             'first_name' => $data['user_metadata']['first_name'] ?? null,
             'last_name' => $data['user_metadata']['last_name'] ?? null,

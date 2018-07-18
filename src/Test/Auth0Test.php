@@ -2,7 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
-use Dotenv\Dotenv;
 use AuthGateway\Auth\Auth0;
 
 class Auth0Test extends TestCase
@@ -14,8 +13,7 @@ class Auth0Test extends TestCase
         @session_start();
         parent::setUp();
 
-        $dotenv = new Dotenv(dirname(__DIR__, 2));
-        $dotenv->load();
+        Dotenv::load(dirname(__DIR__, 2));
 
         /** @TODO: Find out how to Mock Auth0 */
         $this->auth0 = new Auth0([

@@ -56,12 +56,13 @@ interface AuthStrategy
     /**
      * Method createUser
      *
-     * @param $email
-     * @param $password
+     * @param string $email
+     * @param string $password
+     * @param array  $data
      *
      * @return mixed
      */
-    public function createUser($email, $password);
+    public function createUser($email, $password, array $data);
 
     /**
      * Method updateUser
