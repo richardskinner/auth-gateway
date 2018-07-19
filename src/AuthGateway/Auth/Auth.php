@@ -68,7 +68,7 @@ class Auth implements AuthStrategy
 
     public function getUsers($filters = [], $page = 1, $perPage = 10)
     {
-        // TODO: Implement getUsers() method.
+        // TODO: Implement createUser() method.
     }
 
     public function createUser($email, $password, array $data)
@@ -76,14 +76,14 @@ class Auth implements AuthStrategy
         // TODO: Implement createUser() method.
     }
 
-    public function getUserById($userId)
-    {
-        // TODO: Implement getUserById() method.
-    }
-
     public function getUser()
     {
         // TODO: Implement getUser() method.
+    }
+
+    public function getUserById($userId)
+    {
+        // TODO: Implement getUserById() method.
     }
 
     public function updateUser($userId, array $data)
