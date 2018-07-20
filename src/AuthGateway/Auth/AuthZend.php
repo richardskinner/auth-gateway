@@ -17,7 +17,6 @@ class AuthZend implements AuthStrategy
 
     public function __construct(array $settings)
     {
-
         $host = $settings['host'];
         $db   = $settings['database'];
         $user = $settings['username'];
@@ -50,47 +49,92 @@ class AuthZend implements AuthStrategy
 
     public function getUsers($filters = [], $page = 1, $perPage = 10)
     {
-        // $query = Manager::table(self::ACCOUNTS_TABLE)->where('company_id', 122);
+        $sqlPieces = array();
+        $bindings = array();
 
-        // if (isset($filters['account_mm_created'])) {
+        // Start select
+        $sqlPieces['select'] = "SELECT * FROM `recurly_accounts`";
 
-        //     $accountCreation = $filters['account_mm_created'];
-        //     unset($filters['account_mm_created']);
+        // Apply filters
+        $sqlPieces['where'] = "WHERE `company_id` = 122";
 
-        //     $query->whereDate('account_mm_created', $this->getDateFilterFormat($accountCreation));
-        // }
+        // Date created
+        if (isset($filters['account_mm_created'])) {
+            $sqlPieces['where_created'] = "AND WHERE `account_mm_created` = :account_mm_created";
 
-        // if (isset($filters['name_or_email'])) {
+            $creationDate = $this->getDateFilterFormat($filters['account_mm_created']);
 
-        //     $nameOrEmail = $filters['name_or_email'];
-        //     unset($filters['name_or_email']);
+            $bindings['account_mm_created'] = $creationDate;
 
-        //     $query->where(function ($q) use ($nameOrEmail) {
+            unset($filters['account_mm_created']);
+        }
 
-        //         $q->where('account_email', 'LIKE', "%$nameOrEmail%")
-        //             ->orWhere('account_first_name', 'LIKE', "%$nameOrEmail%")
-        //             ->orWhere('account_last_name', 'LIKE', "%$nameOrEmail%");
-        //     });
-        // }
+        // Name or email
+        if (isset($filters['name_or_email'])) {
+            $sqlPieces['where_account_email'] = "AND (`account_email` LIKE :like_email";
+            $sqlPieces['where_account_first_name'] = "OR `account_first_name` LIKE :like_first_name";
+            $sqlPieces['where_account_last_name'] = "OR `account_last_name` LIKE :like_last_name)";
 
-        // if (!empty($filters)) {
-        //     foreach ($filters as $field => $values) {
-        //         foreach ($values as $value) {
-        //             $query->orWhere($field, $value);
-        //         }
-        //     }
-        // }
+            $likeString = '%'.$filters['name_or_email'].'%';
 
-        // $accounts = $query->paginate(15)->toArray();
+            $bindings['like_email'] = $likeString;
+            $bindings['like_first_name'] = $likeString;
+            $bindings['like_last_name'] = $likeString;
 
-        // $transformed = array_map(function ($item) {
-        //     return SimplestreamTransformer::transform((array) $item);
-        // }, $accounts['data']);
+            unset($filters['name_or_email']);
+        }
 
-        // $accounts['data'] = $transformed;
+        // Any remaining
+        if (!empty($filters)) {
+            foreach ($filters as $field => $values) {
+                $pieceLabel = 'where_'.$field;
+                $newPiece = 'AND `'.$field.'`';
 
-        // return $accounts;
-        return 'placeholder';
+                if (count($values) == 1) {
+                    $newPiece .= ' = :'.$pieceLabel;
+                    $bindings[$pieceLabel] = $values;
+                } elseif (count($values) > 1) {
+                    $newPiece .= ' IN (';
+
+                    $i = 0;
+                    foreach ($values as $value) {
+                        $valueLabel = $pieceLabel.'_'.$i;
+
+                        $newPiece .= ':'.$valueLabel.', ';
+
+                        $bindings[$valueLabel] = $value;
+
+                        $i++;
+                    }
+
+                    $newPiece = substr($newPiece, 0, -2).')';
+                }
+
+                $sqlPieces[$pieceLabel] = $newPiece;
+            }
+        }
+
+        // Paginate
+        $sqlPieces['limit'] = "LIMIT ".(((int) $page - 1) * (int) $perPage).", ".(int) $perPage;
+
+        // Compile query
+        $sqlQuery = implode(' ', $sqlPieces);
+
+        // Prep statement
+        $stmt = $this->pdo->prepare($sqlQuery);
+
+        // Exec statement with bound values
+        $stmt->execute($bindings);
+
+        // Extract and transform data
+        $accounts = array();
+
+        while ($item = $stmt->fetch())
+        {
+            $accounts[] = SimplestreamTransformer::transform((array) $item);
+        }
+
+        return $accounts;
     }
 
     public function createUser($email, $password, array $data)

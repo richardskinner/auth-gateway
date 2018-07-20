@@ -27,7 +27,7 @@ class AuthZendTest extends TestCase
         return [
             [
                 'filters' => [
-                    'name_or_email' => 'richard'
+                    'name_or_email' => 'richard',
                 ]
             ]
         ];
