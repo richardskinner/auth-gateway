@@ -51,9 +51,9 @@ class AuthLaravel implements AuthStrategy
         // TODO: Implement logout() method.
     }
 
-    public function getUsers($filters = [], $page = 0, $perPage = 15)
+    public function getUsers($companyId, $filters = [], $page = 0, $perPage = 15)
     {
-        $query = Manager::table(self::ACCOUNTS_TABLE)->where('company_id', 122);
+        $query = Manager::table(self::ACCOUNTS_TABLE)->where('company_id', $companyId);
 
         if (isset($filters['account_mm_created'])) {
 
@@ -95,7 +95,7 @@ class AuthLaravel implements AuthStrategy
         return $accounts;
     }
 
-    public function createUser($email, $password, array $data)
+    public function createUser($companyId, $email, $password, array $data)
     {
         $data = array_merge($data, [
             'account_password' => $password,
@@ -103,10 +103,10 @@ class AuthLaravel implements AuthStrategy
         ]);
 
         // @TODO: Really need to stop this specific company logic....RIDICULOUS!
-        if (in_array(Auth::user()->company_id, [22, 25, 37, 94, 95, 114, 121, 122,])) {
-            $data["account_password"] = password_hash($data["account_password"], PASSWORD_BCRYPT, array('cost' => 10));
+        if (in_array($companyId, [22, 25, 37, 94, 95, 114, 121, 122,])) {
+            $data["account_password"] = password_hash($password, PASSWORD_BCRYPT, array('cost' => 10));
         } else {
-            $data["account_password"] = md5($data["account_password"]);
+            $data["account_password"] = md5($password);
         }
 
         return Manager::table(self::ACCOUNTS_TABLE)->insert($data);
@@ -117,19 +117,19 @@ class AuthLaravel implements AuthStrategy
         return \Illuminate\Support\Facades\Auth::user();
     }
 
-    public function updateUser($userId, array $data)
+    public function updateUser($companyId, $userId, array $data)
     {
-        unset($data['account_code']);
-
         $data = $this->removeEmptyElementFromMultidimensionalArray($data);
 
-        return Manager::table(self::ACCOUNTS_TABLE)->where('account_code', $userId)->update($data);
+        return Manager::table(self::ACCOUNTS_TABLE)
+            ->where('company_id', $companyId)
+            ->where('account_code', $userId)->update($data);
     }
 
-    public function getUserById($userId)
+    public function getUserById($companyId, $userId)
     {
         $account = Manager::table(self::ACCOUNTS_TABLE)
-            ->where('company_id', 122)
+            ->where('company_id', $companyId)
             ->where('account_code', $userId)
             ->first();
 

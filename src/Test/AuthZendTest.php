@@ -26,6 +26,7 @@ class AuthZendTest extends TestCase
     {
         return [
             [
+                122,
                 'filters' => [
                     'name_or_email' => 'richard',
                 ]
@@ -36,7 +37,10 @@ class AuthZendTest extends TestCase
     public function providerUserId()
     {
         return [
-            [302163]
+            [
+                122,
+                302163
+            ]
         ];
     }
 
@@ -46,6 +50,7 @@ class AuthZendTest extends TestCase
 
         return [
             [
+                122,
                 302163,
                 [
                     'account_code' => 302163,
@@ -64,6 +69,7 @@ class AuthZendTest extends TestCase
 
         return [
             [
+                122,
                 $faker->email,
                 $faker->password,
                 [
@@ -77,9 +83,9 @@ class AuthZendTest extends TestCase
     /**
      * @dataProvider providerFilters
      */
-    public function testGetUsers($filters)
+    public function testGetUsers($companyId, $filters)
     {
-        $accounts = $this->authZend->getUsers($filters);
+        $accounts = $this->authZend->getUsers($companyId, $filters);
         $this->assertArrayHasKey('data', $accounts);
     }
 
@@ -87,18 +93,19 @@ class AuthZendTest extends TestCase
      * @dataProvider providerUserId
      * @param $userId
      */
-    public function testGetUserById($userId)
+    public function testGetUserById($companyId, $userId)
     {
-        $account = $this->authZend->getUserById($userId);
+        $account = $this->authZend->getUserById($companyId, $userId);
         $this->assertArrayHasKey('id', $account);
     }
 
     /**
      * @dataProvider providerUpdateUser
      */
-    public function testUpdateUser($userId, $data)
+    public function testUpdateUser($companyId, $userId, $data)
     {
-        $updated = $this->authZend->updateUser($userId, $data);
+        $updated = $this->authZend->updateUser($companyId, $userId, $data);
+
         $this->assertGreaterThan(0, $updated);
     }
 
@@ -108,10 +115,9 @@ class AuthZendTest extends TestCase
      * @param $password
      * @param $data
      */
-    public function testCreateUser($email, $password, $data)
+    public function testCreateUser($companyId, $email, $password, $data)
     {
-        $created = $this->authZend->createUser($email, $password, $data);
-        var_dump($created);
-
+        $created = $this->authZend->createUser($companyId, $email, $password, $data);
+        $this->assertTrue($created);
     }
 }

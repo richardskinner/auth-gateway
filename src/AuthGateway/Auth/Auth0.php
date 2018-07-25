@@ -141,7 +141,7 @@ class Auth0 implements AuthStrategy
      *
      * @throws \Exception
      */
-    public function getUsers($filters = [], $page = 0, $perPage = 10)
+    public function getUsers($companyId, $filters = [], $page = 0, $perPage = 10)
     {
         $accounts = $this->managementClient->users->getAll(['include_totals' => true], null, true, $page, $perPage);
 
@@ -164,9 +164,11 @@ class Auth0 implements AuthStrategy
      *
      * @return array|mixed|null
      */
-    public function getUserById($userId)
+    public function getUserById($companyId, $userId)
     {
-        return Auth0Transformer::transform($this->managementClient->users->get($userId));
+        return Auth0Transformer::transform(
+            $this->managementClient->users->get($userId)
+        );
     }
 
     /**
@@ -180,7 +182,7 @@ class Auth0 implements AuthStrategy
      *
      * @throws \Exception
      */
-    public function createUser($email, $password, $metadata = [])
+    public function createUser($companyId, $email, $password, array $data)
     {
         try {
             $listUsers = $this->managementClient->usersByEmail->get(array('email' => $email));
@@ -210,11 +212,11 @@ class Auth0 implements AuthStrategy
                         'connection' => 'Username-Password-Authentication',
                         'email' => $email,
                         'password' => $password,
-                        'name' => (isset($metadata['first_name']) ? $metadata['first_name'] : null) . ' ' . (isset($metadata['last_name']) ? $metadata['last_name'] : null),
+                        'name' => (isset($data['first_name']) ? $data['first_name'] : null) . ' ' . (isset($data['last_name']) ? $data['last_name'] : null),
                         'user_metadata' => [
                             'first_name' => isset($data['account_first_name']) ? $data['account_first_name'] : null,
                             'last_name' => isset($data['account_last_name']) ? $data['account_last_name'] : null,
-                            'company_id' => isset($metadata['company_id']) ? $metadata['company_id'] : null,
+                            'company_id' => isset($data['company_id']) ? $data['company_id'] : null,
                             'recurly' => [
                                 'account_code' => null
                             ]
@@ -255,7 +257,7 @@ class Auth0 implements AuthStrategy
      *
      * @throws \Exception
      */
-    public function updateUser($userId, array $data)
+    public function updateUser($companyId, $userId, array $data)
     {
         // @TODO: Needs some sort of transformer
         $data = [
@@ -265,9 +267,9 @@ class Auth0 implements AuthStrategy
             'user_metadata' => [
                 'first_name' => isset($data['account_first_name']) ? $data['account_first_name'] : null,
                 'last_name' => isset($data['account_last_name']) ? $data['account_last_name'] : null,
-                'company_id' => isset($data['company_id']) ? (integer) $data['company_id'] : null,
+                'company_id' => isset($companyId) ? (integer) $companyId : null,
                 'recurly' => [
-                    'account_code' => isset($data['account_code']) ? (integer) $data['account_code'] : null,
+                    'account_code' => isset($userId) ? (integer) $userId : null,
                 ]
             ]
         ];
@@ -397,9 +399,9 @@ class Auth0 implements AuthStrategy
      *
      * @return array
      */
-    public function changePassword($userId, $password)
+    public function changePassword($companyId, $userId, $password)
     {
-        $user = $this->getUserById($userId);
+        $user = $this->getUserById($companyId, $userId);
 
         if (!$user) {
             throw new \Exception('Invalid user');
@@ -418,9 +420,9 @@ class Auth0 implements AuthStrategy
      *
      * @return array
      */
-    public function changeEmail($userId, $email)
+    public function changeEmail($companyId, $userId, $email)
     {
-        $user = $this->getUserById($userId);
+        $user = $this->getUserById($companyId, $userId);
 
         if (!$user) {
             throw new \Exception('Invalid user');

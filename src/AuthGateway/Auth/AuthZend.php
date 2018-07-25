@@ -47,7 +47,7 @@ class AuthZend implements AuthStrategy
         // TODO: Implement logout() method.
     }
 
-    public function getUsers($filters = [], $page = 1, $perPage = 10)
+    public function getUsers($companyId, $filters = [], $page = 1, $perPage = 10)
     {
         $sqlPieces = array();
         $bindings = array();
@@ -56,7 +56,7 @@ class AuthZend implements AuthStrategy
         $sqlPieces['select'] = "SELECT * FROM `recurly_accounts`";
 
         // Apply filters
-        $sqlPieces['where'] = "WHERE `company_id` = 122";
+        $sqlPieces['where'] = "WHERE `company_id` = ".$companyId;
 
         // Date created
         if (isset($filters['account_mm_created'])) {
@@ -131,26 +131,39 @@ class AuthZend implements AuthStrategy
 
         while ($item = $stmt->fetch())
         {
-            $accounts[] = SimplestreamTransformer::transform((array) $item);
+            $accounts['data'] = SimplestreamTransformer::transform((array) $item);
         }
 
         return $accounts;
     }
 
-    public function createUser($email, $password, array $data)
+    public function createUser($companyId, $email, $password, array $data)
     {
         $data = array_merge($data, [
             'account_created' => date('Y-m-d H:i:s'),
         ]);
 
         // @TODO: Really need to stop this specific company logic....RIDICULOUS!
-        if (in_array(Auth::user()->company_id, [22, 25, 37, 94, 95, 114, 121, 122,])) {
-            $data["account_password"] = password_hash($data["account_password"], PASSWORD_BCRYPT, array('cost' => 10));
+        if (in_array($companyId, [22, 25, 37, 94, 95, 114, 121, 122,])) {
+            $data["account_password"] = password_hash($password, PASSWORD_BCRYPT, array('cost' => 10));
         } else {
-            $data["account_password"] = md5($data["account_password"]);
+            $data["account_password"] = md5($password);
         }
 
-        return Manager::table(self::ACCOUNTS_TABLE)->insert($data);
+        // foreach ($data as $column => $value) {
+            $columnNames = array_keys($data);
+
+            $sqlColumns = '`'.implode('`, `', $columnNames).'`';
+            $sqlValues = ':'.implode(', :', $columnNames);
+        // }
+
+        $sqlQuery = 'INSERT INTO `recurly_accounts` ('.$sqlColumns.') VALUES ('.$sqlValues.')';
+
+        // Prep statement
+        $stmt = $this->pdo->prepare($sqlQuery);
+
+        // Exec statement with bound values
+        return $stmt->execute($data);
     }
 
     public function getUser()
@@ -158,23 +171,57 @@ class AuthZend implements AuthStrategy
         return \Illuminate\Support\Facades\Auth::user();
     }
 
-    public function updateUser($userId, array $data)
+    public function updateUser($companyId, $userId, array $data)
     {
         unset($data['account_code']);
 
+        // Filter data
         $data = $this->removeEmptyElementFromMultidimensionalArray($data);
 
-        return Manager::table(self::ACCOUNTS_TABLE)->where('account_code', $userId)->update($data);
+        $sqlUpdates = '';
+
+        foreach ($data as $column => $value) {
+            $sqlUpdates .= '`'.$column.'` = :'.$column.', ';
+        }
+
+        // Compile query
+        $sqlQuery = 'UPDATE `recurly_accounts` ';
+        $sqlQuery .= 'SET '.substr($sqlUpdates, 0, -2).' ';
+        $sqlQuery .= 'WHERE `company_id` = :company_id ';
+        $sqlQuery .= 'AND `account_code` = :user_id ';
+        $sqlQuery .= 'LIMIT 1';
+
+        // Prep statement
+        $stmt = $this->pdo->prepare($sqlQuery);
+
+        // Add ids to data for use in query
+        $data['company_id'] = $companyId;
+        $data['user_id'] = $userId;
+
+        // Exec statement with bound values
+        $stmt->execute($data);
+
+        return $stmt->rowCount();
     }
 
-    public function getUserById($userId)
+    public function getUserById($companyId, $userId)
     {
-        $account = Manager::table(self::ACCOUNTS_TABLE)
-            ->where('company_id', 122)
-            ->where('account_code', $userId)
-            ->first();
+        // Compile SQL
+        $sqlQuery = "SELECT * FROM `recurly_accounts` ";
+        $sqlQuery .= "WHERE `company_id` = :company_id ";
+        $sqlQuery .= "AND `account_code` = :user_id";
 
-        return SimplestreamTransformer::transform((array) $account);
+        // Prep statement
+        $stmt = $this->pdo->prepare($sqlQuery);
+
+        // Exec statement with bound values
+        $stmt->execute([
+            'company_id' => $companyId,
+            'user_id' => $userId
+        ]);
+
+        // Extract and transform data
+        return SimplestreamTransformer::transform((array) $stmt->fetch());
     }
 
     public function deleteUser($userId)

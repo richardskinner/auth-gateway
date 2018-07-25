@@ -34,7 +34,7 @@ interface AuthStrategy
      *
      * @return mixed
      */
-    public function getUsers($filters = [], $page = 1, $perPage = 10);
+    public function getUsers($companyId, $filters = [], $page = 1, $perPage = 10);
 
     /**
      * Method getUser
@@ -51,7 +51,7 @@ interface AuthStrategy
      * @param $userId
      * @return mixed
      */
-    public function getUserById($userId);
+    public function getUserById($companyId, $userId);
 
     /**
      * Method createUser
@@ -62,7 +62,7 @@ interface AuthStrategy
      *
      * @return mixed
      */
-    public function createUser($email, $password, array $data);
+    public function createUser($companyId, $email, $password, array $data);
 
     /**
      * Method updateUser
@@ -72,7 +72,7 @@ interface AuthStrategy
      *
      * @return mixed
      */
-    public function updateUser($userId, array $data);
+    public function updateUser($companyId, $userId, array $data);
 
     /**
      * Method deleteUser

@@ -1,9 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
-use AuthGateway\Auth\AuthLaravel;
+use AuthGateway\Auth\Auth0;
 
 class AuthLaravelTest extends TestCase
 {
@@ -14,10 +13,7 @@ class AuthLaravelTest extends TestCase
         @session_start();
         Dotenv::load(dirname(__DIR__, 2));
 
-        Auth::shouldReceive('user')->andReturn($user = \Mockery::mock('StdClass'))->once();
-        $user->company_id = 122;
-
-        $this->authLaravel = new AuthLaravel([
+        $this->authLaravel = new \AuthGateway\Auth\AuthLaravel([
             'driver' => getenv('DB_CONNECTION'),
             'host' => getenv('DB_HOST'),
             'database' => getenv('DB_DATABASE'),
@@ -30,6 +26,7 @@ class AuthLaravelTest extends TestCase
     {
         return [
             [
+                122,
                 'filters' => [
                     'name_or_email' => 'richard'
                 ]
@@ -40,7 +37,10 @@ class AuthLaravelTest extends TestCase
     public function providerUserId()
     {
         return [
-            [302163]
+            [
+                122,
+                302163
+            ]
         ];
     }
 
@@ -50,6 +50,7 @@ class AuthLaravelTest extends TestCase
 
         return [
             [
+                122,
                 302163,
                 [
                     'account_code' => 302163,
@@ -68,6 +69,7 @@ class AuthLaravelTest extends TestCase
 
         return [
             [
+                122,
                 $faker->email,
                 $faker->password,
                 [
@@ -91,18 +93,18 @@ class AuthLaravelTest extends TestCase
      * @dataProvider providerUserId
      * @param $userId
      */
-    public function testGetUserById($userId)
+    public function testGetUserById($companyId, $userId)
     {
-        $account = $this->authLaravel->getUserById($userId);
+        $account = $this->authLaravel->getUserById($companyId, $userId);
         $this->assertArrayHasKey('id', $account);
     }
 
     /**
      * @dataProvider providerUpdateUser
      */
-    public function testUpdateUser($userId, $data)
+    public function testUpdateUser($companyId, $userId, $data)
     {
-        $updated = $this->authLaravel->updateUser($userId, $data);
+        $updated = $this->authLaravel->updateUser($companyId, $userId, $data);
         $this->assertGreaterThan(0, $updated);
     }
 
@@ -112,10 +114,9 @@ class AuthLaravelTest extends TestCase
      * @param $password
      * @param $data
      */
-    public function testCreateUser($email, $password, $data)
+    public function testCreateUser($companyId, $email, $password, $data)
     {
-        $created = $this->authLaravel->createUser($email, $password, $data);
+        $created = $this->authLaravel->createUser($companyId, $email, $password, $data);
         $this->assertTrue($created);
-
     }
 }
