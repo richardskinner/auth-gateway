@@ -2,9 +2,8 @@
 
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
-use AuthGateway\Auth\Auth0;
 
-class AuthZendTest extends TestCase
+class AuthSimpleStreamTest extends TestCase
 {
     private $authZend = null;
 
@@ -13,7 +12,7 @@ class AuthZendTest extends TestCase
         @session_start();
         Dotenv::load(dirname(__DIR__, 2));
 
-        $this->authZend = new \AuthGateway\Auth\AuthZend([
+        $this->authZend = new \AuthGateway\Auth\Strategy\SimpleStream([
             'driver' => getenv('DB_CONNECTION'),
             'host' => getenv('DB_HOST'),
             'database' => getenv('DB_DATABASE'),

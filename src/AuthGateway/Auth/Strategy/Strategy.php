@@ -1,8 +1,8 @@
 <?php
 
-namespace AuthGateway\Auth;
+namespace AuthGateway\Auth\Strategy;
 
-interface AuthStrategy
+interface Strategy
 {
     /**
      * Method authenticate

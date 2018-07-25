@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
-use AuthGateway\Auth\Auth0;
+use AuthGateway\Auth\Strategy\Auth0;
 
 class Auth0Test extends TestCase
 {

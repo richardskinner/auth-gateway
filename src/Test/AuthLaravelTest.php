@@ -2,7 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
-use AuthGateway\Auth\Auth0;
 
 class AuthLaravelTest extends TestCase
 {
@@ -13,7 +12,7 @@ class AuthLaravelTest extends TestCase
         @session_start();
         Dotenv::load(dirname(__DIR__, 2));
 
-        $this->authLaravel = new \AuthGateway\Auth\AuthLaravel([
+        $this->authLaravel = new \AuthGateway\Auth\Strategy\Laravel([
             'driver' => getenv('DB_CONNECTION'),
             'host' => getenv('DB_HOST'),
             'database' => getenv('DB_DATABASE'),

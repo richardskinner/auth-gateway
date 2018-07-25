@@ -2,7 +2,9 @@
 
 namespace AuthGateway\Auth\Transformers;
 
-class Auth0Transformer implements TransformerInterface
+use AuthGateway\Auth\Transformers\Transformer as TransformerInterface;
+
+class Auth0 implements TransformerInterface
 {
     public static function transform($data)
     {

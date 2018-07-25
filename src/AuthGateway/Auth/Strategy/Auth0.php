@@ -1,14 +1,15 @@
 <?php
 
-namespace AuthGateway\Auth;
+namespace AuthGateway\Auth\Strategy;
 
+use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
+use AuthGateway\Auth\Transformers\Auth0 as Auth0Transformer;
 use Auth0\SDK\Auth0 as Auth0SDK;
 use Auth0\SDK\API\Management;
 use Auth0\SDK\API\Authentication;
-use AuthGateway\Auth\Transformers\Auth0Transformer;
 use GuzzleHttp\Exception\ClientException;
 
-class Auth0 implements AuthStrategy
+class Auth0 implements StrategyInterface
 {
     /**
      * @var string

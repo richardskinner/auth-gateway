@@ -1,15 +1,16 @@
 <?php
 
-namespace AuthGateway\Auth;
+namespace AuthGateway\Auth\Strategy;
 
-use AuthGateway\Auth\Transformers\SimplestreamTransformer;
+use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
+use AuthGateway\Auth\Transformers\Simplestream as SimplestreamTransformer;
 use \PDO;
 // use Illuminate\Database\Capsule\Manager;
 // use Illuminate\Events\Dispatcher;
 // use Illuminate\Container\Container;
 use PasswordCompat;
 
-class AuthZend implements AuthStrategy
+class Simplestream implements StrategyInterface
 {
     private $pdo = null;
 

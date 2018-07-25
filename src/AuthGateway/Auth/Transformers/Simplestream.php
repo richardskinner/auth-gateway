@@ -2,7 +2,9 @@
 
 namespace AuthGateway\Auth\Transformers;
 
-class SimplestreamTransformer implements TransformerInterface
+use AuthGateway\Auth\Transformers\Transformer as TransformerInterface;
+
+class Simplestream implements TransformerInterface
 {
     public static function transform($data)
     {
