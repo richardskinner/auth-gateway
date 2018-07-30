@@ -264,7 +264,15 @@ class Simplestream implements StrategyInterface
 
     public function deleteUser($userId)
     {
-        // TODO: Implement deleteUser() method.
+        $dateDeleted = new DateTime();
+
+        // @TODO implement account_deleted_by
+
+        return $this->updateUser(
+            $companyId,
+            $userId,
+            ['account_deleted' => $dateDeleted->format('Y-m-d H:i:s')]
+        );
     }
 
     /**
