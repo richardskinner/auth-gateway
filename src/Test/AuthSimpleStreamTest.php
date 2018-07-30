@@ -43,6 +43,16 @@ class AuthSimpleStreamTest extends TestCase
         ];
     }
 
+    public function providerUserEmail()
+    {
+        return [
+            [
+                122,
+                'will.davies@simplestream.com'
+            ]
+        ];
+    }
+
     public function providerUpdateUser()
     {
         $faker = Factory::create();
@@ -95,6 +105,17 @@ class AuthSimpleStreamTest extends TestCase
     public function testGetUserById($companyId, $userId)
     {
         $account = $this->authZend->getUserById($companyId, $userId);
+        $this->assertArrayHasKey('id', $account);
+    }
+
+    /**
+     * @dataProvider providerUserEmail
+     * @param $companyId
+     * @param $userEmail
+     */
+    public function testGetUserByEmail($companyId, $userEmail)
+    {
+        $account = $this->authZend->getUserByEmail($companyId, $userEmail);
         $this->assertArrayHasKey('id', $account);
     }
 

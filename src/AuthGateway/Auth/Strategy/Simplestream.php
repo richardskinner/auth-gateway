@@ -33,9 +33,26 @@ class Simplestream implements StrategyInterface
         $this->pdo = new PDO($dsn, $user, $pass, $opt);
     }
 
-    public function authenticate()
+    public function authenticate($companyId, $email, $password)
     {
-        // TODO: Implement authenticate() method.
+        // Get user object
+        $account = $this->getUserByEmail($companyId, $email);
+
+        if (!$account) {
+            return false;
+        }
+
+        // Check various things (inherited from SimpleStream_Auth Zend Adapter)
+        if ($account['gateway'] == "netbanx" && $account['account_password'] == "reset") {
+            return false;
+        }
+
+        // Verify password
+        if (password_verify($this->password, $account->account_password)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function login()
@@ -219,6 +236,26 @@ class Simplestream implements StrategyInterface
         $stmt->execute([
             'company_id' => $companyId,
             'user_id' => $userId
+        ]);
+
+        // Extract and transform data
+        return SimplestreamTransformer::transform((array) $stmt->fetch());
+    }
+
+    public function getUserByEmail($companyId, $email)
+    {
+        // Compile SQL
+        $sqlQuery = "SELECT * FROM `recurly_accounts` ";
+        $sqlQuery .= "WHERE `company_id` = :company_id ";
+        $sqlQuery .= "AND `account_email` = :user_email";
+
+        // Prep statement
+        $stmt = $this->pdo->prepare($sqlQuery);
+
+        // Exec statement with bound values
+        $stmt->execute([
+            'company_id' => $companyId,
+            'user_email' => $email
         ]);
 
         // Extract and transform data

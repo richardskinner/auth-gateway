@@ -7,9 +7,13 @@ interface Strategy
     /**
      * Method authenticate
      *
-     * @return mixed
+     * @param integer $companyId 
+     * @param string $email
+     * @param string $password
+     *
+     * @return boolean
      */
-    public function authenticate();
+    public function authenticate($companyId, $email, $password);
 
     /**
      * Method login
@@ -52,6 +56,15 @@ interface Strategy
      * @return mixed
      */
     public function getUserById($companyId, $userId);
+
+    /**
+     * Method getUserByEmail
+     *
+     * @param $companyId
+     * @param $email
+     * @return mixed
+     */
+    public function getUserByEmail($companyId, $email);
 
     /**
      * Method createUser

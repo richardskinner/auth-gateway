@@ -75,7 +75,7 @@ class Auth0 implements StrategyInterface
      * @throws \Auth0\SDK\Exception\CoreException
      * @throws \Exception
      */
-    public function authenticate()
+    public function authenticate($companyId, $email, $password)
     {
         $userInfo = $this->authenticationClient->getUser();
 
@@ -169,6 +169,23 @@ class Auth0 implements StrategyInterface
     {
         return Auth0Transformer::transform(
             $this->managementClient->users->get($userId)
+        );
+    }
+
+    /**
+     * getUserByEmail
+     *
+     * @param string $companyId
+     * @param string $userEmail
+     *
+     * @throws \Exception
+     *
+     * @return array|mixed|null
+     */
+    public function getUserByEmail($companyId, $userEmail)
+    {
+        return Auth0Transformer::transform(
+            $this->managementClient->usersByEmail->get($userEmail)
         );
     }
 

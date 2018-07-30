@@ -37,7 +37,7 @@ class Laravel implements StrategyInterface
         $manager->bootEloquent();
     }
 
-    public function authenticate()
+    public function authenticate($companyId, $email, $password)
     {
         // TODO: Implement authenticate() method.
     }
@@ -132,6 +132,16 @@ class Laravel implements StrategyInterface
         $account = Manager::table(self::ACCOUNTS_TABLE)
             ->where('company_id', $companyId)
             ->where('account_code', $userId)
+            ->first();
+
+        return SimplestreamTransformer::transform((array) $account);
+    }
+
+    public function getUserByEmail($companyId, $userEmail)
+    {
+        $account = Manager::table(self::ACCOUNTS_TABLE)
+            ->where('company_id', $companyId)
+            ->where('account_email', $userEmail)
             ->first();
 
         return SimplestreamTransformer::transform((array) $account);
