@@ -100,6 +100,7 @@ class AuthSimpleStreamTest extends TestCase
 
     /**
      * @dataProvider providerUserId
+     * @param $companyId
      * @param $userId
      */
     public function testGetUserById($companyId, $userId)
@@ -121,16 +122,19 @@ class AuthSimpleStreamTest extends TestCase
 
     /**
      * @dataProvider providerUpdateUser
+     * @param $companyId
+     * @param $userId
+     * @param $data
      */
     public function testUpdateUser($companyId, $userId, $data)
     {
         $updated = $this->authZend->updateUser($companyId, $userId, $data);
-
         $this->assertGreaterThan(0, $updated);
     }
 
     /**
      * @dataProvider providerCreateUser
+     * @param $companyId
      * @param $email
      * @param $password
      * @param $data

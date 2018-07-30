@@ -89,10 +89,8 @@ class Auth0 implements StrategyInterface
             $socialLogin = true;
         }
 
-
         $userInfo['user_id'] = $userInfo['sub'];
         $userMetadata = $this->getUserMetadata($userInfo['sub']);
-
 
         return Auth0Transformer::transform(array_merge($userInfo, $userMetadata));
     }
@@ -482,7 +480,7 @@ class Auth0 implements StrategyInterface
      * @param $arr
      * @return array
      */
-    function removeEmptyElementFromMultidimensionalArray($arr) {
+    protected function removeEmptyElementFromMultidimensionalArray($arr) {
 
         $return = array();
 

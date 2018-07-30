@@ -55,9 +55,14 @@ class Simplestream implements StrategyInterface
         return false;
     }
 
+    /**
+     * This method returns $this because we think it might be redundant, at
+     * least in this case
+     */
     public function login()
     {
         // TODO: Implement login() method.
+        return $this;
     }
 
     public function logout()
@@ -293,7 +298,7 @@ class Simplestream implements StrategyInterface
      * @param $arr
      * @return array
      */
-    function removeEmptyElementFromMultidimensionalArray($arr) {
+    protected function removeEmptyElementFromMultidimensionalArray($arr) {
 
         $return = array();
 

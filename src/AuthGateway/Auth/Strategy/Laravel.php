@@ -170,7 +170,7 @@ class Laravel implements StrategyInterface
      * @param $arr
      * @return array
      */
-    function removeEmptyElementFromMultidimensionalArray($arr) {
+    protected function removeEmptyElementFromMultidimensionalArray($arr) {
 
         $return = array();
 

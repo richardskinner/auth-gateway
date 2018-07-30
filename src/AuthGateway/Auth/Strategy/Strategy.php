@@ -24,7 +24,6 @@ interface Strategy
 
     /**
      * Method logout
-     *
      * @return mixed
      */
     public function logout();
@@ -32,6 +31,7 @@ interface Strategy
     /**
      * Method getUsers
      *
+     * @param integer $companyId
      * @param array $filters
      * @param int   $page
      * @param int   $perPage
@@ -52,7 +52,9 @@ interface Strategy
     /**
      * Method getUserById
      *
+     * @param integer $companyId
      * @param $userId
+     *
      * @return mixed
      */
     public function getUserById($companyId, $userId);
@@ -69,6 +71,7 @@ interface Strategy
     /**
      * Method createUser
      *
+     * @param integer $companyId
      * @param string $email
      * @param string $password
      * @param array  $data
@@ -80,6 +83,7 @@ interface Strategy
     /**
      * Method updateUser
      *
+     * @param integer $companyId
      * @param string $userId
      * @param array  $data
      *
@@ -92,7 +96,7 @@ interface Strategy
      *
      * @param $userId
      *
-     * @return mixed
+     * @return integer
      */
     public function deleteUser($userId);
 }
