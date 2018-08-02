@@ -5,9 +5,6 @@ namespace AuthGateway\Auth\Strategy;
 use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
 use AuthGateway\Auth\Transformers\Simplestream as SimplestreamTransformer;
 use \PDO;
-// use Illuminate\Database\Capsule\Manager;
-// use Illuminate\Events\Dispatcher;
-// use Illuminate\Container\Container;
 use PasswordCompat;
 
 class Simplestream implements StrategyInterface
