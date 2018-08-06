@@ -1,8 +1,10 @@
 <?php
 
-namespace AuthGateway\Auth;
+namespace AuthGateway\Auth\Strategy;
 
-class DefenceGateway implements AuthStrategy
+use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
+
+class DefenceGateway implements StrategyInterface
 {
     private $gatewayUrlLogin = "https://d2hx7rr0zgyood.cloudfront.net/login_web.php?return_to=%s";
 

@@ -3,16 +3,16 @@
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
 
-class AuthLaravelTest extends TestCase
+class AuthSimpleStreamTest extends TestCase
 {
-    private $authLaravel = null;
+    private $authZend = null;
 
     public function setUp()
     {
         @session_start();
         Dotenv::load(dirname(__DIR__, 2));
 
-        $this->authLaravel = new \AuthGateway\Auth\Strategy\Laravel([
+        $this->authZend = new \AuthGateway\Auth\Strategy\SimpleStream([
             'driver' => getenv('DB_CONNECTION'),
             'host' => getenv('DB_HOST'),
             'database' => getenv('DB_DATABASE'),
@@ -27,7 +27,7 @@ class AuthLaravelTest extends TestCase
             [
                 122,
                 'filters' => [
-                    'name_or_email' => 'richard'
+                    'name_or_email' => 'richard',
                 ]
             ]
         ];
@@ -39,6 +39,16 @@ class AuthLaravelTest extends TestCase
             [
                 122,
                 302163
+            ]
+        ];
+    }
+
+    public function providerUserEmail()
+    {
+        return [
+            [
+                122,
+                'will.davies@simplestream.com'
             ]
         ];
     }
@@ -82,40 +92,56 @@ class AuthLaravelTest extends TestCase
     /**
      * @dataProvider providerFilters
      */
-    public function testGetUsers($filters)
+    public function testGetUsers($companyId, $filters)
     {
-        $accounts = $this->authLaravel->getUsers($filters);
+        $accounts = $this->authZend->getUsers($companyId, $filters);
         $this->assertArrayHasKey('data', $accounts);
     }
 
     /**
      * @dataProvider providerUserId
+     * @param $companyId
      * @param $userId
      */
     public function testGetUserById($companyId, $userId)
     {
-        $account = $this->authLaravel->getUserById($companyId, $userId);
+        $account = $this->authZend->getUserById($companyId, $userId);
+        $this->assertArrayHasKey('id', $account);
+    }
+
+    /**
+     * @dataProvider providerUserEmail
+     * @param $companyId
+     * @param $userEmail
+     */
+    public function testGetUserByEmail($companyId, $userEmail)
+    {
+        $account = $this->authZend->getUserByEmail($companyId, $userEmail);
         $this->assertArrayHasKey('id', $account);
     }
 
     /**
      * @dataProvider providerUpdateUser
+     * @param $companyId
+     * @param $userId
+     * @param $data
      */
     public function testUpdateUser($companyId, $userId, $data)
     {
-        $updated = $this->authLaravel->updateUser($companyId, $userId, $data);
+        $updated = $this->authZend->updateUser($companyId, $userId, $data);
         $this->assertGreaterThan(0, $updated);
     }
 
     /**
      * @dataProvider providerCreateUser
+     * @param $companyId
      * @param $email
      * @param $password
      * @param $data
      */
     public function testCreateUser($companyId, $email, $password, $data)
     {
-        $created = $this->authLaravel->createUser($companyId, $email, $password, $data);
+        $created = $this->authZend->createUser($companyId, $email, $password, $data);
         $this->assertTrue($created);
     }
 }
