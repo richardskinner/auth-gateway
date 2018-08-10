@@ -6,10 +6,9 @@ use Auth0\SDK\Auth0 as Auth0SDK;
 
 class AuthGateway
 {
-    const ZEND_AUTH = 1;
+    const SIMPLESTREAM_AUTH = 1;
     const DEFENCE_GATEWAY = 2;
     const AUTH0 = 3;
-    const LARAVEL_AUTH = 4;
 
     private static $instance;
 
@@ -33,17 +32,14 @@ class AuthGateway
         if (NULL == self::$instance) {
 
             switch ($gateway) {
-                case self::ZEND_AUTH:
-                    self::$instance = new Auth();
+                case self::SIMPLESTREAM_AUTH:
+                    self::$instance = new Simplestream();
                     break;
                 case self::DEFENCE_GATEWAY:
                     self::$instance = new DefenceGateway($settings);
                     break;
                 case self::AUTH0:
                     self::$instance = new Auth0($settings);
-                    break;
-                case self::LARAVEL_AUTH:
-                    self::$instance = new AuthLaravel();
                     break;
             }
 
