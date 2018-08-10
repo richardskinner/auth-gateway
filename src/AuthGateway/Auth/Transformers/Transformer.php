@@ -2,8 +2,7 @@
 
 namespace AuthGateway\Auth\Transformers;
 
-
-interface TransformerInterface
+interface Transformer
 {
     public static function transform($data);
 }

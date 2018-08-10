@@ -1,15 +1,19 @@
 <?php
 
-namespace AuthGateway\Auth;
+namespace AuthGateway\Auth\Strategy;
 
-interface AuthStrategy
+interface Strategy
 {
     /**
      * Method authenticate
      *
-     * @return mixed
+     * @param integer $companyId 
+     * @param string $email
+     * @param string $password
+     *
+     * @return boolean
      */
-    public function authenticate();
+    public function authenticate($companyId, $email, $password);
 
     /**
      * Method login
@@ -20,7 +24,6 @@ interface AuthStrategy
 
     /**
      * Method logout
-     *
      * @return mixed
      */
     public function logout();
@@ -28,13 +31,14 @@ interface AuthStrategy
     /**
      * Method getUsers
      *
+     * @param integer $companyId
      * @param array $filters
      * @param int   $page
      * @param int   $perPage
      *
      * @return mixed
      */
-    public function getUsers($filters = [], $page = 1, $perPage = 10);
+    public function getUsers($companyId, $filters = [], $page = 1, $perPage = 10);
 
     /**
      * Method getUser
@@ -48,38 +52,51 @@ interface AuthStrategy
     /**
      * Method getUserById
      *
+     * @param integer $companyId
      * @param $userId
+     *
      * @return mixed
      */
-    public function getUserById($userId);
+    public function getUserById($companyId, $userId);
+
+    /**
+     * Method getUserByEmail
+     *
+     * @param $companyId
+     * @param $email
+     * @return mixed
+     */
+    public function getUserByEmail($companyId, $email);
 
     /**
      * Method createUser
      *
+     * @param integer $companyId
      * @param string $email
      * @param string $password
      * @param array  $data
      *
      * @return mixed
      */
-    public function createUser($email, $password, array $data);
+    public function createUser($companyId, $email, $password, array $data);
 
     /**
      * Method updateUser
      *
+     * @param integer $companyId
      * @param string $userId
      * @param array  $data
      *
      * @return mixed
      */
-    public function updateUser($userId, array $data);
+    public function updateUser($companyId, $userId, array $data);
 
     /**
      * Method deleteUser
      *
      * @param $userId
      *
-     * @return mixed
+     * @return integer
      */
     public function deleteUser($userId);
 }

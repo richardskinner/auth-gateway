@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use Faker\Factory;
-use AuthGateway\Auth\Auth0;
+use AuthGateway\Auth\Strategy\Auth0;
 
 class Auth0Test extends TestCase
 {
@@ -28,22 +28,26 @@ class Auth0Test extends TestCase
         $faker = Factory::create();
 
         return [
-            ['auth0|47547f3eef3cbf6f1327db318688db97', 'rgskinner@werdigital.co.uk']
+            [
+                122,
+                'auth0|47547f3eef3cbf6f1327db318688db97',
+                'rgskinner@werdigital.co.uk'
+            ]
         ];
     }
 
-    public function providerUpdateUserData()
+    public function providerUpdateUser()
     {
         $faker = Factory::create();
 
         return [
             [
+                122,
                 'auth0|47547f3eef3cbf6f1327db318688db97',
                 [
                     'connection' => 'Username-Password-Authentication',
                     'first_name' => $faker->firstName,
                     'last_name' => $faker->lastName,
-                    'company_id' => 122,
                     'account_code' => 'auth0|47547f3eef3cbf6f1327db318688db97'
                 ]
             ]
@@ -56,6 +60,7 @@ class Auth0Test extends TestCase
 
         return [
             [
+                122,
                 $faker->email,
                 $faker->password,
                 [
@@ -71,7 +76,10 @@ class Auth0Test extends TestCase
     public function providerGetUser()
     {
         return [
-            ['auth0|5a8308d99bf9bc6ee2544892']
+            [
+                122,
+                'auth0|5a8308d99bf9bc6ee2544892'
+            ]
         ];
     }
 
@@ -89,19 +97,19 @@ class Auth0Test extends TestCase
      *
      * @throws Exception
      */
-    public function testGetUserById($userId)
+    public function testGetUserById($companyId, $userId)
     {
-        $this->assertArrayHasKey('id', $this->auth0->getUserById($userId));
+        $this->assertArrayHasKey('id', $this->auth0->getUserById($companyId, $userId));
     }
 
     /**
-     * @dataProvider providerUpdateUserData
+     * @dataProvider providerUpdateUser
      *
      * @param $userId
      */
-    public function testUpdateUser($userId, $data)
+    public function testUpdateUser($companyId, $userId, $data)
     {
-        $response = $this->auth0->updateUser($userId, $data);
+        $response = $this->auth0->updateUser($companyId, $userId, $data);
 
         $this->assertArraySubset(['user_metadata' => ['company_id' => 122]], $response);
     }
@@ -111,9 +119,9 @@ class Auth0Test extends TestCase
      * @param $userId
      * @param $email
      */
-    public function testChangeEmail($userId, $email)
+    public function testChangeEmail($companyId, $userId, $email)
     {
-        $response = $this->auth0->changeEmail($userId, $email);
+        $response = $this->auth0->changeEmail($companyId, $userId, $email);
 
         $this->assertArraySubset(['status' => 'pending'], $response);
     }
@@ -125,9 +133,9 @@ class Auth0Test extends TestCase
      * @param $password
      * @param $metadata
      */
-    public function testCreateUser($email, $password, $metadata)
+    public function testCreateUser($companyId, $email, $password, $metadata)
     {
-        $userId = $this->auth0->createUser($email, $password, $metadata);
+        $userId = $this->auth0->createUser($companyId, $email, $password, $metadata);
         $this->assertRegExp('^[auth0].*$^', $userId);
     }
 
