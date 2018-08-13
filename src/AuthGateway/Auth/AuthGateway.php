@@ -33,20 +33,17 @@ class AuthGateway
 
             switch ($gateway) {
                 case self::SIMPLESTREAM_AUTH:
-                    self::$instance = new Simplestream();
+                    self::$instance = new Strategy\Simplestream($settings);
                     break;
                 case self::DEFENCE_GATEWAY:
-                    self::$instance = new DefenceGateway($settings);
+                    self::$instance = new Strategy\DefenceGateway($settings);
                     break;
                 case self::AUTH0:
-                    self::$instance = new Auth0($settings);
+                    self::$instance = new Strategy\Auth0($settings);
                     break;
             }
-
-            return self::$instance;
-
-        } else {
-            return NULL;
         }
+
+        return self::$instance;
     }
 }
