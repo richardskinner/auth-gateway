@@ -4,6 +4,7 @@ namespace AuthGateway\Auth\Strategy;
 
 use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
 use AuthGateway\Auth\Transformers\Simplestream as SimplestreamTransformer;
+use AuthGateway\Exception\AuthGatewayException;
 use \PDO;
 use PasswordCompat;
 
@@ -71,6 +72,14 @@ class Simplestream implements StrategyInterface
     {
         $sqlPieces = array();
         $bindings = array();
+
+        // Validate page inputs
+        if (
+            (!is_integer($page) || $page < 1)
+            || (!is_integer($perPage) || $perPage < 1)
+        ) {
+            throw new AuthGatewayException('Invalid pagination spec provided');
+        }
 
         // Start select
         $sqlPieces['select'] = "SELECT * FROM `recurly_accounts`";
