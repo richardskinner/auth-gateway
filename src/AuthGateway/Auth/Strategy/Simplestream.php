@@ -24,11 +24,13 @@ class Simplestream implements StrategyInterface
         $charset = 'utf8';
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+
         $opt = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
         ];
+
         $this->pdo = new PDO($dsn, $user, $pass, $opt);
     }
 
@@ -192,12 +194,10 @@ class Simplestream implements StrategyInterface
             $data["account_password"] = md5($password);
         }
 
-        // foreach ($data as $column => $value) {
-            $columnNames = array_keys($data);
+        $columnNames = array_keys($data);
 
-            $sqlColumns = '`'.implode('`, `', $columnNames).'`';
-            $sqlValues = ':'.implode(', :', $columnNames);
-        // }
+        $sqlColumns = '`'.implode('`, `', $columnNames).'`';
+        $sqlValues = ':'.implode(', :', $columnNames);
 
         $sqlQuery = 'INSERT INTO `recurly_accounts` ('.$sqlColumns.') VALUES ('.$sqlValues.')';
 
