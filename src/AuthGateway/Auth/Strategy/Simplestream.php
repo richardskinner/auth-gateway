@@ -160,7 +160,7 @@ class Simplestream implements StrategyInterface
 
         while ($item = $stmt->fetch())
         {
-            $accounts['data'] = SimplestreamTransformer::transform((array) $item);
+            $accounts['data'][] = SimplestreamTransformer::transform((array) $item);
         }
 
         return $accounts;
