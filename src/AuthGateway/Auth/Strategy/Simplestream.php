@@ -5,6 +5,7 @@ namespace AuthGateway\Auth\Strategy;
 use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
 use AuthGateway\Auth\Transformers\Simplestream as SimplestreamTransformer;
 use AuthGateway\Exception\AuthGatewayException;
+use AuthGateway\Auth\AuthGateway;
 use \PDO;
 use PasswordCompat;
 
@@ -178,7 +179,10 @@ class Simplestream implements StrategyInterface
     public function createUser($companyId, $email, $password, array $data)
     {
         $data = array_merge($data, [
+            'company_id' => $companyId,
             'account_created' => date('Y-m-d H:i:s'),
+            'account_mm_created' => date('Y-m-d H:i:s'),
+            'auth_vendor' => AuthGateway::SIMPLESTREAM_AUTH,
         ]);
 
         // @TODO: Really need to stop this specific company logic....RIDICULOUS!
@@ -201,7 +205,9 @@ class Simplestream implements StrategyInterface
         $stmt = $this->pdo->prepare($sqlQuery);
 
         // Exec statement with bound values
-        return $stmt->execute($data);
+        $stmt->execute($data);
+
+        return $this->pdo->lastInsertId();
     }
 
     public function getUser()
