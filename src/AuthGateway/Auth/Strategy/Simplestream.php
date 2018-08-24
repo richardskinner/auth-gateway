@@ -82,7 +82,7 @@ class Simplestream implements StrategyInterface
         }
 
         // Start select
-        $sqlPieces['select'] = "SELECT * FROM `recurly_accounts`";
+        $sqlPieces['select'] = "SELECT SQL_CALC_FOUND_ROWS * FROM `recurly_accounts`";
 
         // Apply filters
         $sqlPieces['where'] = "WHERE `company_id` = ".$companyId;
@@ -161,6 +161,15 @@ class Simplestream implements StrategyInterface
         while ($item = $stmt->fetch())
         {
             $accounts['data'][] = SimplestreamTransformer::transform((array) $item);
+        }
+
+        // Get total
+        $stmt = $this->pdo->prepare("SELECT FOUND_ROWS() AS `total-users`");
+        $stmt->execute();
+        $total = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (is_array($total)) {
+            $accounts['total'] = $total['total-users'];
         }
 
         return $accounts;
