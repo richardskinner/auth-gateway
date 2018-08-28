@@ -15,8 +15,8 @@ class Simplestream implements TransformerInterface
             'first_name' => $data['account_first_name'] ?? null,
             'last_name' => $data['account_last_name'] ?? null,
             'account_code' => $data['account_code'] ?? null,
-            'created_at' => $data['account_created'] ?? null,
-            'updated_at' => $data['account_updated'] ?? null, //Field doesn't exist but needs to consistent with other transformers
+            'created_at' => isset($data['account_created']) ? new \DateTime($data['account_created']) : null,
+            'updated_at' => isset($data['account_updated']) ? new \DateTime($data['account_updated']) : null, //Field doesn't exist but needs to consistent with other transformers
         ];
     }
 }

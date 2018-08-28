@@ -14,8 +14,8 @@ class Auth0 implements TransformerInterface
             'first_name' => $data['user_metadata']['first_name'] ?? null,
             'last_name' => $data['user_metadata']['last_name'] ?? null,
             'account_code' => $data['user_metadata']['recurly']['account_code'] ?? null,
-            'created_at' => $data['created_at'] ?? null,
-            'updated_at' => $data['updated_at'] ?? null,
+            'created_at' => isset($data['created_at']) ? new \DateTime($data['created_at']) : null,
+            'updated_at' => isset($data['updated_at']) ? new \DateTime($data['updated_at']) : null, //Field doesn't exist but needs to consistent with other transformers
         ];
     }
 }
