@@ -140,8 +140,11 @@ class Auth0 implements StrategyInterface
      *
      * @throws \Exception
      */
-    public function getUsers($companyId, $filters = [], $page = 0, $perPage = 10)
+    public function getUsers($companyId, $filters = [], $page = 1, $perPage = 10)
     {
+        // Convert 1-indexed page number to 0-indexed
+        $page = max(0, $page - 1);
+
         $accounts = $this->managementClient->users->getAll(['include_totals' => true], null, true, $page, $perPage);
 
         $transformed = array_map(function ($item) {
