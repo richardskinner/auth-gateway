@@ -95,7 +95,7 @@ class Auth0Test extends TestCase
      *
      * @param $userId
      *
-     * @throws Exception
+     * @throws AuthGatewayException
      */
     public function testGetUserById($companyId, $userId)
     {

@@ -3,6 +3,7 @@
 namespace AuthGateway\Auth\Strategy;
 
 use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
+use AuthGateway\Exception\AuthGatewayException;
 
 class DefenceGateway implements StrategyInterface
 {
@@ -25,7 +26,7 @@ class DefenceGateway implements StrategyInterface
      * authenticate
      *
      * @return object
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function authenticate()
     {
@@ -33,7 +34,7 @@ class DefenceGateway implements StrategyInterface
         $token = filter_var($_POST['token'], FILTER_SANITIZE_STRING);
 
         if (sha1($_POST['data'] . $this->secret) !== $token) {
-            throw new \Exception('Authentication Error.');
+            throw new AuthGatewayException('Authentication Error.');
         }
 
         $data = json_decode(urldecode($data));
