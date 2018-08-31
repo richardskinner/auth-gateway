@@ -9,6 +9,7 @@ use Auth0\SDK\Auth0 as Auth0SDK;
 use Auth0\SDK\API\Management;
 use Auth0\SDK\API\Authentication;
 use GuzzleHttp\Exception\ClientException;
+use AuthGateway\Auth\Helper\ArrayHelper;
 
 class Auth0 implements StrategyInterface
 {
@@ -320,7 +321,7 @@ class Auth0 implements StrategyInterface
             ]
         ];
 
-        $data = $this->removeEmptyElementFromMultidimensionalArray($data);
+        $data = ArrayHelper::removeEmptyElementFromMultidimensionalArray($data);
 
         try {
             $result = $this->managementClient->users->update($userId, $data);
@@ -514,30 +515,5 @@ class Auth0 implements StrategyInterface
                 throw new AuthGatewayException('Internal Error');
             }
         }
-    }
-
-    /**
-     * @param $arr
-     * @return array
-     */
-    protected function removeEmptyElementFromMultidimensionalArray($arr) {
-
-        $return = array();
-
-        foreach($arr as $k => $v) {
-
-            if(is_array($v)) {
-                $return[$k] = $this->removeEmptyElementFromMultidimensionalArray($v); //recursion
-                continue;
-            }
-
-            if(empty($v)) {
-                unset($arr[$v]);
-            } else {
-                $return[$k] = $v;
-            };
-        }
-
-        return $return;
     }
 }
