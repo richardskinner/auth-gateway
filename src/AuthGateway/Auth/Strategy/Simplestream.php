@@ -332,7 +332,7 @@ class Simplestream implements StrategyInterface
         return SimplestreamTransformer::transform((array) $stmt->fetch());
     }
 
-    public function deleteUser($userId)
+    public function deleteUser($companyId, $userId)
     {
         $dateDeleted = new DateTime();
 

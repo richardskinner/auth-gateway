@@ -342,7 +342,7 @@ class Auth0 implements StrategyInterface
      *
      * @throws AuthGatewayException
      */
-    public function deleteUser($userId)
+    public function deleteUser($companyId, $userId)
     {
         try {
             return $this->managementClient->users->delete($userId);
