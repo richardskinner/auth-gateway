@@ -71,6 +71,18 @@ class Simplestream implements StrategyInterface
         // TODO: Implement logout() method.
     }
 
+    /**
+     * getUsers
+     *
+     * @param int   $companyId
+     * @param array $filters
+     * @param int   $page
+     * @param int   $perPage
+     *
+     * @return mixed
+     *
+     * @throws AuthGatewayException
+     */
     public function getUsers($companyId, $filters = [], $page = 1, $perPage = 10)
     {
         $sqlPieces = array();

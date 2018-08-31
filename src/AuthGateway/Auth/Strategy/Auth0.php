@@ -4,6 +4,7 @@ namespace AuthGateway\Auth\Strategy;
 
 use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
 use AuthGateway\Auth\Transformers\Auth0 as Auth0Transformer;
+use AuthGateway\Exception\AuthGatewayException;
 use Auth0\SDK\Auth0 as Auth0SDK;
 use Auth0\SDK\API\Management;
 use Auth0\SDK\API\Authentication;
@@ -51,7 +52,7 @@ class Auth0 implements StrategyInterface
      *
      * @param array $settings
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function __construct(array $settings = [])
     {
@@ -71,16 +72,18 @@ class Auth0 implements StrategyInterface
      *
      * @return array|bool
      *
-     * @throws \Auth0\SDK\Exception\ApiException
-     * @throws \Auth0\SDK\Exception\CoreException
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function authenticate($companyId, $email, $password)
     {
-        $userInfo = $this->authenticationClient->getUser();
+        try {
+            $userInfo = $this->authenticationClient->getUser();
+        } catch (\Exception $exception) {
+            throw new AuthGatewayException('Internal Error');
+        }
 
         if (null === $userInfo) {
-            return false;
+            throw new AuthGatewayException('Internal Error');
         }
 
         $socialLogin = false;
@@ -100,7 +103,11 @@ class Auth0 implements StrategyInterface
      */
     public function login()
     {
-        $this->authenticationClient->login();
+        try {
+            $this->authenticationClient->login();
+        } catch (\Exception $exception) {
+            throw new AuthGatewayException('Internal Error');
+        }
     }
 
     /**
@@ -111,7 +118,11 @@ class Auth0 implements StrategyInterface
     public function logout()
     {
         if ($this->auth0Enabled) {
-            $this->authenticationClient->logout();
+            try {
+                $this->authenticationClient->logout();
+            } catch (\Exception $exception) {
+                throw new AuthGatewayException('Internal Error');
+            }
         }
     }
 
@@ -126,7 +137,11 @@ class Auth0 implements StrategyInterface
      */
     public function getUser()
     {
-        return $this->authenticationClient->getUser();
+        try {
+            return $this->authenticationClient->getUser();
+        } catch (\Exception $exception) {
+            throw new AuthGatewayException('Internal Error');
+        }
     }
 
     /**
@@ -138,14 +153,18 @@ class Auth0 implements StrategyInterface
      *
      * @return mixed
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function getUsers($companyId, $filters = [], $page = 1, $perPage = 10)
     {
         // Convert 1-indexed page number to 0-indexed
         $page = max(0, $page - 1);
 
-        $accounts = $this->managementClient->users->getAll(['include_totals' => true], null, true, $page, $perPage);
+        try {
+            $accounts = $this->managementClient->users->getAll(['include_totals' => true], null, true, $page, $perPage);
+        } catch (\Exception $exception) {
+            throw new AuthGatewayException('Internal Error');
+        }
 
         $transformed = array_map(function ($item) {
             return Auth0Transformer::transform($item);
@@ -162,15 +181,19 @@ class Auth0 implements StrategyInterface
      *
      * @param string $userId
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      *
      * @return array|mixed|null
      */
     public function getUserById($companyId, $userId)
     {
-        return Auth0Transformer::transform(
-            $this->managementClient->users->get($userId)
-        );
+        try {
+            $userInfo = $this->managementClient->users->get($userId);
+        } catch (\Exception $exception) {
+            throw new AuthGatewayException('Internal Error');
+        }
+
+        return Auth0Transformer::transform($userInfo);
     }
 
     /**
@@ -179,15 +202,19 @@ class Auth0 implements StrategyInterface
      * @param string $companyId
      * @param string $userEmail
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      *
      * @return array|mixed|null
      */
     public function getUserByEmail($companyId, $userEmail)
     {
-        return Auth0Transformer::transform(
-            $this->managementClient->usersByEmail->get($userEmail)
-        );
+        try {
+            $userInfo = $this->managementClient->usersByEmail->get($userEmail);
+        } catch (\Exception $exception) {
+            throw new AuthGatewayException('Internal Error');
+        }
+
+        return Auth0Transformer::transform($userInfo);
     }
 
     /**
@@ -199,7 +226,7 @@ class Auth0 implements StrategyInterface
      *
      * @return string AccountCode|bool
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function createUser($companyId, $email, $password, array $data)
     {
@@ -251,18 +278,18 @@ class Auth0 implements StrategyInterface
             return $accountCode;
 
         } catch (ClientException $e) {
-
             if ($e->hasResponse()) {
-
                 $response = $e->getResponse();
+                $body = json_decode($response->getBody());
 
-                if ($response->getStatusCode() == 400) {
-                    $body = json_decode($response->getBody());
-                    throw new \Exception($body->message);
-                }
+                $message = $body->message;
+            } else {
+                $message = $e->getMessage();
             }
 
-            throw new \Exception('Something went wrong, please try again.');
+            $code = $e->getCode();
+
+            throw new AuthGatewayException($message, $code, $e);
         }
     }
 
@@ -274,7 +301,7 @@ class Auth0 implements StrategyInterface
      *
      * @return mixed|string
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function updateUser($companyId, $userId, array $data)
     {
@@ -295,7 +322,13 @@ class Auth0 implements StrategyInterface
 
         $data = $this->removeEmptyElementFromMultidimensionalArray($data);
 
-        return $this->managementClient->users->update($userId, $data);
+        try {
+            $result = $this->managementClient->users->update($userId, $data);
+        } catch (Exception $e) {
+            throw new AuthGatewayException('Internal Error');
+        }
+
+        return $result;
     }
 
     /**
@@ -307,11 +340,15 @@ class Auth0 implements StrategyInterface
      *
      * @return mixed|string
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function deleteUser($userId)
     {
-        return $this->managementClient->users->delete($userId);
+        try {
+            return $this->managementClient->users->delete($userId);
+        } catch (Exception $e) {
+            throw new AuthGatewayException('Internal Error');
+        }
     }
 
     /**
@@ -327,7 +364,7 @@ class Auth0 implements StrategyInterface
     /**
      * @return Auth0SDK
      */
-    public function getAuth0SDK()
+    private function getAuth0SDK()
     {
         return new Auth0SDK([
             'domain' => $this->domain,
@@ -346,7 +383,7 @@ class Auth0 implements StrategyInterface
      * getManagementClient
      *
      * @return Management
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     protected function getManagementClient()
     {
@@ -364,14 +401,14 @@ class Auth0 implements StrategyInterface
      *
      * @param string $userId
      * @return array
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     protected function getUserMetadata($userId)
     {
         try {
             $user = $this->managementClient->users->get($userId);
         } catch (\Exception $exception) {
-            throw new \Exception('Internal Error');
+            throw new AuthGatewayException('Internal Error');
         }
 
         if (isset($user['user_metadata'])) {
@@ -384,7 +421,7 @@ class Auth0 implements StrategyInterface
     /**
      * @param string $userId
      * @return string
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     protected function setRecurlyAccountCode($userId)
     {
@@ -402,7 +439,7 @@ class Auth0 implements StrategyInterface
                 )
             );
         } catch (\Exception $exception) {
-            throw new \Exception('Internal Error');
+            throw new AuthGatewayException('Internal Error');
         }
 
         return $accountCode;
@@ -414,7 +451,7 @@ class Auth0 implements StrategyInterface
      * @param string $userId
      * @param string $password
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      *
      * @return array
      */
@@ -423,7 +460,7 @@ class Auth0 implements StrategyInterface
         $user = $this->getUserById($companyId, $userId);
 
         if (!$user) {
-            throw new \Exception('Invalid user');
+            throw new AuthGatewayException('Invalid user');
         }
 
         return $this->managementClient->users->update($userId, array('password' => $password, 'connection' => 'Username-Password-Authentication'));
@@ -435,7 +472,7 @@ class Auth0 implements StrategyInterface
      * @param string $userId
      * @param string $email
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      *
      * @return array
      */
@@ -444,7 +481,7 @@ class Auth0 implements StrategyInterface
         $user = $this->getUserById($companyId, $userId);
 
         if (!$user) {
-            throw new \Exception('Invalid user');
+            throw new AuthGatewayException('Invalid user');
         }
 
         $this->managementClient->users->update(
@@ -464,7 +501,7 @@ class Auth0 implements StrategyInterface
      *
      * @param string $token
      *
-     * @throws \Exception
+     * @throws AuthGatewayException
      */
     public function sendEmailVerification($token)
     {
@@ -474,7 +511,7 @@ class Auth0 implements StrategyInterface
             try {
                 $this->managementClient->jobs->sendVerificationEmail($userId);
             } catch (\Exception $e) {
-                throw new \Exception('Internal Error');
+                throw new AuthGatewayException('Internal Error');
             }
         }
     }
