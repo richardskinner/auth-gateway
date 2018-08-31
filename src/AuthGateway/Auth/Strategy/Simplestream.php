@@ -6,6 +6,8 @@ use AuthGateway\Auth\Strategy\Strategy as StrategyInterface;
 use AuthGateway\Auth\Transformers\Simplestream as SimplestreamTransformer;
 use AuthGateway\Exception\AuthGatewayException;
 use AuthGateway\Auth\AuthGateway;
+use AuthGateway\Auth\Helper\ArrayHelper;
+use AuthGateway\Auth\Helper\DateTimeHelper;
 use \PDO;
 use PasswordCompat;
 
@@ -104,9 +106,9 @@ class Simplestream implements StrategyInterface
 
         // Date created
         if (isset($filters['account_mm_created'])) {
-            $sqlPieces['where_created'] = "AND WHERE `account_mm_created` = :account_mm_created";
+            $sqlPieces['where_created'] = "AND `account_mm_created` = :account_mm_created";
 
-            $creationDate = $this->getDateFilterFormat($filters['account_mm_created']);
+            $creationDate = DateTimeHelper::getDateFilterFormat($filters['account_mm_created']);
 
             $bindings['account_mm_created'] = $creationDate;
 
@@ -249,7 +251,7 @@ class Simplestream implements StrategyInterface
         unset($data['account_code']);
 
         // Filter data
-        $data = $this->removeEmptyElementFromMultidimensionalArray($data);
+        $data = ArrayHelper::removeEmptyElementFromMultidimensionalArray($data);
 
         $sqlUpdates = '';
 
@@ -343,44 +345,5 @@ class Simplestream implements StrategyInterface
             $userId,
             ['account_deleted' => $dateDeleted->format('Y-m-d H:i:s')]
         );
-    }
-
-    /**
-     * Date Filters
-     *
-     * @param $filter
-     * @return string
-     */
-    protected function getDateFilterFormat($filter)
-    {
-        $date = new \DateTime();
-        $date->add(\DateInterval::createFromDateString($filter));
-
-        return $date->format('Y-m-d H:i:s');
-    }
-
-    /**
-     * @param $arr
-     * @return array
-     */
-    protected function removeEmptyElementFromMultidimensionalArray($arr) {
-
-        $return = array();
-
-        foreach($arr as $k => $v) {
-
-            if(is_array($v)) {
-                $return[$k] = $this->removeEmptyElementFromMultidimensionalArray($v); //recursion
-                continue;
-            }
-
-            if(empty($v)) {
-                unset($arr[$v]);
-            } else {
-                $return[$k] = $v;
-            };
-        }
-
-        return $return;
     }
 }
