@@ -98,5 +98,5 @@ interface Strategy
      *
      * @return integer
      */
-    public function deleteUser($userId);
+    public function deleteUser($companyId, $userId);
 }
