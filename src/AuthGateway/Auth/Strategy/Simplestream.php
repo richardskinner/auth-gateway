@@ -167,8 +167,13 @@ class Simplestream implements StrategyInterface
         // Prep statement
         $stmt = $this->pdo->prepare($sqlQuery);
 
-        // Exec statement with bound values
-        $stmt->execute($bindings);
+        try {
+            // Exec statement with bound values
+            $stmt->execute($bindings);
+        } catch (\Exception $e) {
+            // TODO - map PDO errors to human readable messages
+            throw new AuthGatewayException($e->getMessage(), $e->getCode(), $e);
+        }
 
         // Extract and transform data
         $accounts = array();
@@ -180,7 +185,14 @@ class Simplestream implements StrategyInterface
 
         // Get total
         $stmt = $this->pdo->prepare("SELECT FOUND_ROWS() AS `total-users`");
-        $stmt->execute();
+
+        try {
+            $stmt->execute();
+        } catch (\Exception $e) {
+            // TODO - map PDO errors to human readable messages
+            throw new AuthGatewayException($e->getMessage(), $e->getCode(), $e);
+        }
+
         $total = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (is_array($total)) {
@@ -216,8 +228,13 @@ class Simplestream implements StrategyInterface
         // Prep statement
         $stmt = $this->pdo->prepare($sqlQuery);
 
-        // Exec statement with bound values
-        $stmt->execute($data);
+        try {
+            // Exec statement with bound values
+            $stmt->execute($data);
+        } catch (\Exception $e) {
+            // TODO - map PDO errors to human readable messages
+            throw new AuthGatewayException($e->getMessage(), $e->getCode(), $e);
+        }
 
         return $this->pdo->lastInsertId();
     }
@@ -254,8 +271,13 @@ class Simplestream implements StrategyInterface
         $data['company_id'] = $companyId;
         $data['user_id'] = $userId;
 
-        // Exec statement with bound values
-        $stmt->execute($data);
+        try {
+            // Exec statement with bound values
+            $stmt->execute($data);
+        } catch (\Exception $e) {
+            // TODO - map PDO errors to human readable messages
+            throw new AuthGatewayException($e->getMessage(), $e->getCode(), $e);
+        }
 
         return $stmt->rowCount();
     }
@@ -270,11 +292,16 @@ class Simplestream implements StrategyInterface
         // Prep statement
         $stmt = $this->pdo->prepare($sqlQuery);
 
-        // Exec statement with bound values
-        $stmt->execute([
-            'company_id' => $companyId,
-            'user_id' => $userId
-        ]);
+        try {
+            // Exec statement with bound values
+            $stmt->execute([
+                'company_id' => $companyId,
+                'user_id' => $userId
+            ]);
+        } catch (\Exception $e) {
+            // TODO - map PDO errors to human readable messages
+            throw new AuthGatewayException($e->getMessage(), $e->getCode(), $e);
+        }
 
         // Extract and transform data
         return SimplestreamTransformer::transform((array) $stmt->fetch());
@@ -290,11 +317,16 @@ class Simplestream implements StrategyInterface
         // Prep statement
         $stmt = $this->pdo->prepare($sqlQuery);
 
-        // Exec statement with bound values
-        $stmt->execute([
-            'company_id' => $companyId,
-            'user_email' => $email
-        ]);
+        try {
+            // Exec statement with bound values
+            $stmt->execute([
+                'company_id' => $companyId,
+                'user_email' => $email
+            ]);
+        } catch (\Exception $e) {
+            // TODO - map PDO errors to human readable messages
+            throw new AuthGatewayException($e->getMessage(), $e->getCode(), $e);
+        }
 
         // Extract and transform data
         return SimplestreamTransformer::transform((array) $stmt->fetch());
