@@ -71,11 +71,15 @@ class Auth0 implements StrategyInterface
     /**
      * authenticate
      *
+     * @param null $companyId
+     * @param null $email
+     * @param null $password
+     *
      * @return array|bool
      *
      * @throws AuthGatewayException
      */
-    public function authenticate($companyId, $email, $password)
+    public function authenticate($companyId = null, $email = null, $password = null)
     {
         try {
             $userInfo = $this->authenticationClient->getUser();
