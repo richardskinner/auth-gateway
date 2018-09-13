@@ -70,7 +70,7 @@ class Simplestream implements StrategyInterface
 
     public function logout()
     {
-        // TODO: Implement logout() method.
+        session_destroy();
     }
 
     /**

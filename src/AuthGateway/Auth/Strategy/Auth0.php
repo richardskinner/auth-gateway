@@ -375,7 +375,7 @@ class Auth0 implements StrategyInterface
             'domain' => $this->domain,
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
-            'redirect_uri' => $this->getProtocol() . '://' . $_SERVER['HTTP_HOST'] . '/authenticated.php',
+            'redirect_uri' => $this->getProtocol() . '://' . $_SERVER['HTTP_HOST'],
             'audience' => 'https://' . getenv('AUTH0_DOMAIN') . '/api/v2/',
             'scope' => 'openid profile',
             'persist_id_token' => false,
